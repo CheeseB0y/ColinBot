@@ -29,7 +29,7 @@ async def on_ready():
     
 @bot.command(name="ping", help="This command returns the latency")
 async def ping(ctx):
-    await ctx.send(f"Pong! Latency: {round(bot.latency * 1000)}ms")
+    await ctx.send(f"Latency: {round(bot.latency * 1000)}ms")
 
 @bot.command(name="colin", help="Post a random picture of Colin Marie")
 async def colin(ctx):
