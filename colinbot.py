@@ -1,23 +1,15 @@
 #ColinBot 3.0
 #John Wood
 
-import asyncio
 import discord
-from discord.ext import commands, tasks
-from discord.voice_client import VoiceClient
+from discord.ext import commands
 from dotenv import load_dotenv
-import youtube_dl
 import os
 import random
-import functools
-import itertools
-import math
-from async_timeout import timeout
 
 load_dotenv()
 
 DISCORD_TOKEN = str(os.getenv('DISCORD_TOKEN'))
-SERVER_IP = str(os.getenv('SERVER_IP'))
 
 intents = discord.Intents().all()
 client = discord.Client(intents=intents)
