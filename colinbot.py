@@ -43,4 +43,8 @@ async def colin(ctx):
 async def ninja(ctx):
     await ctx.send("The phrase “it's just a game” is such a weak mindset. You are ok with what happened, losing, imperfection of a craft. When you stop getting angry after losing, you've lost twice.\n\nThere's always something to learn, and always room for improvement, never settle.")
 
+@bot.command(name="random", help="chosen by fair dice roll. guaranteed to be random.")
+async def getRandomNumber(ctx):
+    await ctx.send("4")
+
 bot.run(DISCORD_TOKEN)
