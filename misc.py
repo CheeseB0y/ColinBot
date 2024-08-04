@@ -5,7 +5,7 @@ import discord
 async def colin(ctx):
     pictures = []
     for filepath in os.listdir("pictures/colin/"):
-        pictures.append("pictures/colin/" + filepath)
+        pictures.append(f"pictures/colin/{filepath}")
     randomColin = random.randint(0, len(pictures) - 1)
     await ctx.send(file=discord.File(pictures[randomColin]))
 

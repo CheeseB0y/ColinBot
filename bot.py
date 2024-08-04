@@ -5,9 +5,9 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
-import music as music
-import chatbot as chatbot
-import misc as misc
+import music
+import chatbot
+import misc
 
 def main():
     load_dotenv()
@@ -71,6 +71,14 @@ def main():
     @bot.command(name="skip", help="")
     async def skip(ctx):
         await music.skip(ctx)
+
+    @bot.command(name="playing", help="")
+    async def playing(ctx):
+        await music.playing(ctx)
+
+    @bot.command(name="queue", help="")
+    async def queue(ctx):
+        await music.print_queue(ctx)
     
     bot.run(DISCORD_TOKEN)
 

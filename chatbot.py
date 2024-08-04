@@ -28,29 +28,26 @@ async def reply(message, bot):
     if bot.user.mentioned_in(message):
         mention = f'<@{bot.user.id}>'
         user = message.author.name
-        content = user + ": " + message.content.replace(mention, '').strip()
+        content = f"{user}: {message.content.replace(mention, '').strip()}"
         append_message(role="user",content=content)
         response = get_completion(messages)
         print(content)
-        print("ColinBot: " + response.choices[0].message.content)
-        print("Tokens: " + str(response.usage.total_tokens))
+        print(f"ColinBot: {response.choices[0].message.content}")
+        print(f"Tokens: {str(response.usage.total_tokens)}")
         append_message(role="assistant",content=response.choices[0].message.content)
         await message.channel.send(response.choices[0].message.content)
     await bot.process_commands(message)
 
 async def thoughts(ctx, x: int):
-    try:
-        if x > 25:
-            await ctx.send("Thoughts function is limited to 25 messages.")
-        else:
-            recent_messages = [system_message]
-            async for message in ctx.channel.history(limit=x+1):
-                content = message.author.name + ": " + message.content
-                recent_messages.append({"role": "user", "content": content})
-            response = get_completion(recent_messages[1:])
-            print(recent_messages[1:])
-            print("ColinBot: " + response.choices[0].message.content)
-            print("Tokens: " + str(response.usage.total_tokens))
-            await ctx.send(response.choices[0].message.content)
-    except Exception as err:
-        print(err)
+    if x > 25:
+        await ctx.send("Thoughts function is limited to 25 messages.")
+    else:
+        recent_messages = [system_message]
+        async for message in ctx.channel.history(limit=x+1):
+            content = f"{message.author.name}: {message.content}"
+            recent_messages.append({"role": "user", "content": content})
+        response = get_completion(recent_messages[1:])
+        print(recent_messages[1:])
+        print(f"ColinBot: {response.choices[0].message.content}")
+        print(f"Tokens: {str(response.usage.total_tokens)}")
+        await ctx.send(response.choices[0].message.content)
