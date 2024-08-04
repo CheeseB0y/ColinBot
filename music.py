@@ -36,7 +36,7 @@ class MusicQueue:
         for song in self.queue:
             i+=1
             queue_str = f"{queue_str}\n{i}: {song}"
-        return f"{queue_str}"
+        return queue_str
 
     def get_song(self):
         return self.queue[0]
@@ -46,7 +46,7 @@ class MusicQueue:
 
     async def enqueue(self, song: Song, ctx):
         self.queue.append(song)
-        await ctx.send(song.title + " has been added to the queue.")
+        await ctx.send("{song.title} has been added to the queue.")
 
     async def dequeue(self, ctx):
         if self.is_empty():
@@ -57,6 +57,7 @@ class MusicQueue:
     
     async def clear(self, ctx):
         self.queue = []
+        self.playing = None
         await ctx.send("Queue has been emptied.")
     
     async def handle_queue(self, ctx):
@@ -66,7 +67,7 @@ class MusicQueue:
             song = await self.dequeue(ctx)
             self.playing = song
             player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options, executable="bin/ffmpeg.exe")
-            await ctx.send("Now playing: " + song.title)
+            await ctx.send(f"Now playing: {song.title}")
             client.play(player)
             while (client.is_playing() or self.pause):
                 await asyncio.sleep(1)
