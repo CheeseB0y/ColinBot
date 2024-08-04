@@ -89,9 +89,10 @@ async def leave(ctx):
 async def play(ctx, url: str):
     try:
         song = Song(url)
-        await queue.enqueue(song, ctx)
-        if (not queue.active):
-            await queue.handle_queue(ctx)
+        if (ctx.author.voice):
+            await queue.enqueue(song, ctx)
+            if (not queue.active):
+                await queue.handle_queue(ctx)
     except Exception as err:
         print(err)
 
