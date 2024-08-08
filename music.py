@@ -120,5 +120,5 @@ async def skip(ctx):
 async def playing(ctx):
     await ctx.send(players[ctx.guild.id].playing)
 
-async def print_queue(ctx):
+async def queue(ctx):
     await ctx.send(players[ctx.guild.id])

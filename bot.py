@@ -78,7 +78,7 @@ def main():
 
     @bot.command(name="queue", help="")
     async def queue(ctx):
-        await music.print_queue(ctx)
+        await music.queue(ctx)
     
     bot.run(DISCORD_TOKEN)
 
