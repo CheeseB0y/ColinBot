@@ -26,28 +26,30 @@ def trim_messages():
 
 async def reply(message, bot):
     if bot.user.mentioned_in(message):
-        mention = f'<@{bot.user.id}>'
-        user = message.author.name
-        content = f"{user}: {message.content.replace(mention, '').strip()}"
-        append_message(role="user",content=content)
-        response = get_completion(messages)
-        print(content)
-        print(f"ColinBot: {response.choices[0].message.content}")
-        print(f"Tokens: {str(response.usage.total_tokens)}")
-        append_message(role="assistant",content=response.choices[0].message.content)
-        await message.channel.send(response.choices[0].message.content)
+        async with message.channel.typing():
+            mention = f'<@{bot.user.id}>'
+            user = message.author.name
+            content = f"{user}: {message.content.replace(mention, '').strip()}"
+            append_message(role="user",content=content)
+            response = get_completion(messages)
+            print(content)
+            print(f"ColinBot: {response.choices[0].message.content}")
+            print(f"Tokens: {str(response.usage.total_tokens)}")
+            append_message(role="assistant",content=response.choices[0].message.content)
+            await message.channel.send(response.choices[0].message.content)
     await bot.process_commands(message)
-
 async def thoughts(ctx, x: int):
-    if x > 25:
-        await ctx.send("Thoughts function is limited to 25 messages.")
-    else:
-        recent_messages = [system_message]
-        async for message in ctx.channel.history(limit=x+1):
-            content = f"{message.author.name}: {message.content}"
-            recent_messages.append({"role": "user", "content": content})
-        response = get_completion(recent_messages[1:])
-        print(recent_messages[1:])
-        print(f"ColinBot: {response.choices[0].message.content}")
-        print(f"Tokens: {str(response.usage.total_tokens)}")
-        await ctx.send(response.choices[0].message.content)
+    limit = 25
+    async with ctx.typing():
+        if x > limit:
+            await ctx.send(f"Thoughts function is limited to {limit} messages.")
+        else:
+            recent_messages = [system_message]
+            async for message in ctx.channel.history(limit=x+1):
+                content = f"{message.author.name}: {message.content}"
+                recent_messages.append({"role": "user", "content": content})
+            response = get_completion(recent_messages[1:])
+            print(recent_messages[1:])
+            print(f"ColinBot: {response.choices[0].message.content}")
+            print(f"Tokens: {str(response.usage.total_tokens)}")
+            await ctx.send(response.choices[0].message.content)

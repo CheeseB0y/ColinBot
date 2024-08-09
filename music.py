@@ -45,30 +45,34 @@ class Player:
         return len(self.queue) == 0
 
     async def enqueue(self, song: Song, ctx):
-        self.queue.append(song)
-        await ctx.send(f"{song.title} has been added to the queue.")
+        async with ctx.typing():
+            self.queue.append(song)
+            await ctx.send(f"{song.title} has been added to the queue.")
 
     async def dequeue(self, ctx):
         if self.is_empty():
-            await ctx.send("Queue is empty")
+            async with ctx.typing():
+                await ctx.send("Queue is empty")
             return None
         song = self.queue.pop(0)
         return song
     
     async def clear(self, ctx):
-        self.queue = []
-        self.playing = None
-        self.active = False
-        await ctx.send("Queue has been emptied.")
+        async with ctx.typing():
+            self.queue = []
+            self.playing = None
+            self.active = False
+            await ctx.send("Queue has been emptied.")
     
     async def handle_queue(self, ctx):
         self.active = True
         while (not self.is_empty()):
-            song = await self.dequeue(ctx)
-            self.playing = song
-            player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options, executable="bin/ffmpeg.exe")
-            await ctx.send(f"Now playing: {song.title}")
-            self.client.play(player)
+            async with ctx.typing():
+                song = await self.dequeue(ctx)
+                self.playing = song
+                player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options, executable="bin/ffmpeg.exe")
+                await ctx.send(f"Now playing: {song.title}")
+                self.client.play(player)
             while (self.client.is_playing() or self.pause):
                 await asyncio.sleep(1)
         self.active = False
@@ -81,17 +85,20 @@ async def join(ctx):
         players[ctx.guild.id] = Player(ctx)
         players[ctx.guild.id].client = await players[ctx.guild.id].channel.connect()
     else:
-        await ctx.send("User is not in a voice channel.")
+        async with ctx.typing():
+            await ctx.send("User is not in a voice channel.")
 
 async def leave(ctx):
     if (players[ctx.guild.id].active):
-        await ctx.send("Cannot leave channel while queue is active. Try !stop instead.")
+        async with ctx.typing():
+            await ctx.send("Cannot leave channel while queue is active. Try !stop instead.")
         return
     if (ctx.voice_client):
         await players[ctx.guild.id].client.disconnect()
         del players[ctx.guild.id]
     else:
-        ctx.send("ColinBot is not currently in a voice channel.")
+        async with ctx.typing():
+            ctx.send("ColinBot is not currently in a voice channel.")
 
 async def play(ctx, url: str):
     song = Song(url)
