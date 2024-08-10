@@ -71,9 +71,9 @@ async def tts(ctx):
         if (len(response.choices[0].message.content) > 2000):
             chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
             for chunk in chunks:
-                await ctx.send(chunk)
+                await ctx.send(chunk, tts=True)
         else:
-            await ctx.send(response.choices[0].message.content)
+            await ctx.send(response.choices[0].message.content, tts=True)
 
 async def thoughts(ctx, x: int):
     limit = 25
