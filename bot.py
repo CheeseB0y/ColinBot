@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 import os
+import atexit
 import music
 import chatbot
 import misc
@@ -18,7 +19,7 @@ def main():
 
     @bot.event
     async def on_ready():
-        print("Bot is online!")
+        print("Bot is online.")
 
     @bot.event
     async def on_message(message):
@@ -27,6 +28,10 @@ def main():
     @bot.command(name="thoughts", help="This command will have colinbot review the past x messages and give his thoughts on the conversation.")
     async def thoughts(ctx, x: int):
         await chatbot.thoughts(ctx, x)
+
+    @bot.command(name="tts", help="")
+    async def tts(ctx):
+        await chatbot.tts(ctx)
 
     @bot.command(name="ping", help="This command returns the latency")
     async def ping(ctx):
@@ -79,6 +84,8 @@ def main():
     @bot.command(name="queue", help="")
     async def queue(ctx):
         await music.queue(ctx)
+
+    atexit.register(misc.on_shutdown)
     
     bot.run(DISCORD_TOKEN)
 

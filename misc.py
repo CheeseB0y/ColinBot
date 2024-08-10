@@ -7,10 +7,7 @@ from io import BytesIO
 
 load_dotenv()
 
-s3 = boto3.resource(service_name='s3',
-                    region_name=os.getenv('AWS_REGION'),
-                    aws_access_key_id=os.getenv('AWS_ACCESS_KEY'),
-                    aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
+s3 = boto3.resource(service_name='s3', region_name=os.getenv('AWS_REGION'), aws_access_key_id=os.getenv('AWS_ACCESS_KEY'), aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'))
 bucket = s3.Bucket(os.getenv('BUCKET_NAME'))
 
 async def colin(ctx):
@@ -33,3 +30,6 @@ async def ninja(ctx):
 async def getRandomNumber(ctx):
     async with ctx.typing():
         await ctx.send("4")
+
+def on_shutdown():
+    print("Bot is offline.")
