@@ -32,4 +32,4 @@ async def getRandomNumber(ctx):
         await ctx.send("4")
 
 def on_shutdown():
-    print("Bot is offline.")
+    print("ColinBot is offline.")

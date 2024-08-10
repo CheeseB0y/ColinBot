@@ -19,7 +19,7 @@ def main():
 
     @bot.event
     async def on_ready():
-        print("Bot is online.")
+        print("ColinBot is online.")
 
     @bot.event
     async def on_message(message):
