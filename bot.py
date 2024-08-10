@@ -11,6 +11,7 @@ import chatbot
 import misc
 
 def main():
+    
     load_dotenv()
 
     DISCORD_TOKEN = str(os.getenv('DISCORD_TOKEN'))
@@ -18,7 +19,7 @@ def main():
     bot = commands.Bot(command_prefix='!', intents=intents)
 
     @bot.event
-    def on_ready():
+    async def on_ready():
         misc.on_startup()
 
     @bot.event
@@ -48,6 +49,10 @@ def main():
     @bot.command(name="random", help="Chosen by fair dice roll. Guaranteed to be random.")
     async def getRandomNumber(ctx):
         await misc.getRandomNumber(ctx)
+
+    @bot.command(name="waifu", help="")
+    async def waifu(ctx):
+        await misc.waifu(ctx)
 
     @bot.command(name="join", help="ColinBot will join the current voice channel the user who sent the command is in.")
     async def join(ctx):

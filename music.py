@@ -1,15 +1,16 @@
 import yt_dlp
 import asyncio
 import discord
+from urllib.parse import urlparse
 
-yt_dl_opts = {'format': 'bestaudio/best', 'cookiefile': '~/.yt-dlp-cookies.txt'}
+yt_dl_opts = {'format': 'bestaudio/best', 'cookiefile': '~/.yt-dlp-cookies.txt', 'noplaylist': True, }
 ytdl = yt_dlp.YoutubeDL(yt_dl_opts)
 ffmpeg_options = {'options': "-vn"}
 
 class Song:
-    def __init__(self, url):
-        self.url = url
-        self.info = self.get_video_info(url)
+    def __init__(self, query):
+        self.query = query
+        self.info = self.get_video_info()
         self.title = self.info.get('title')
         self.author = self.info.get('uploader')
         self.duration = self.info.get('duration')
@@ -18,11 +19,21 @@ class Song:
     def __str__(self):
         return f"Title: {self.title}\nUploader: {self.author}\nDuration: {self.duration}s"
         
-    def get_video_info(self, url):
+    def get_video_info(self):
         with yt_dlp.YoutubeDL(yt_dl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=False)
+            if self.is_url():
+                info_dict = ydl.extract_info(self.query, download=False)
+            else:
+                info_dict = ydl.extract_info(f"ytsearch:{self.query}", download=False)
         return info_dict
-
+    
+    def is_url(self) -> bool:
+        parsed_url = urlparse(self.query)
+        if parsed_url.scheme in ("http", "https") and parsed_url.netloc:
+            return True
+        else:
+            return False
+        
 class Player:
     def __init__(self, ctx):
         self.queue = []

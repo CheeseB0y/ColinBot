@@ -2,6 +2,7 @@ import os
 import random
 import discord
 import boto3
+import requests
 from dotenv import load_dotenv
 from io import BytesIO
 
@@ -30,6 +31,12 @@ async def ninja(ctx):
 async def getRandomNumber(ctx):
     async with ctx.typing():
         await ctx.send("4")
+
+async def waifu(ctx):
+    response = requests.get('https://api.waifu.pics/sfw/waifu')
+    data = response.json()
+    print(f"Waifu.pics API Response: {response.status_code} {data}")
+    await ctx.send(data['url'])
 
 def on_startup():
     print("ColinBot is online.")
