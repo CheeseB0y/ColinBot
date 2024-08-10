@@ -31,5 +31,8 @@ async def getRandomNumber(ctx):
     async with ctx.typing():
         await ctx.send("4")
 
+def on_startup():
+    print("ColinBot is online.")
+
 def on_shutdown():
     print("ColinBot is offline.")

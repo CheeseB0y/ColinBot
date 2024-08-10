@@ -18,8 +18,8 @@ def main():
     bot = commands.Bot(command_prefix='!', intents=intents)
 
     @bot.event
-    async def on_ready():
-        print("ColinBot is online.")
+    def on_ready():
+        misc.on_startup()
 
     @bot.event
     async def on_message(message):
