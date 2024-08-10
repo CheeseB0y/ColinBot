@@ -18,7 +18,7 @@ def main():
     bot = commands.Bot(command_prefix='!', intents=intents)
 
     @bot.event
-    def on_ready():
+    async def on_ready():
         misc.on_startup()
 
     @bot.event
