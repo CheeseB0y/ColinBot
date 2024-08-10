@@ -20,6 +20,9 @@ class ChatBot:
             messages = all_messages
         )
         return completion
+    
+    def split_string_by_length(s, n=2000):
+        return [s[i:i+n] for i in range(0, len(s), n)]
 
     def append_message(self, role="", content=""):
         self.messages.append({"role": role, "content": content})
@@ -45,7 +48,12 @@ async def reply(message, bot):
             print(f"ColinBot: {response.choices[0].message.content}")
             print(f"Tokens: {str(response.usage.total_tokens)}")
             chatbots[message.guild.id].append_message(role="assistant",content=response.choices[0].message.content)
-            await message.channel.send(response.choices[0].message.content)
+            if (len(response.choices[0].message.content) > 2000):
+                chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
+                for chunk in chunks:
+                    await message.channel.send(chunk)
+            else:
+                await message.channel.send(response.choices[0].message.content)
     await bot.process_commands(message)
 
 async def tts(ctx):
@@ -60,7 +68,12 @@ async def tts(ctx):
         print(f"ColinBot: {response.choices[0].message.content}")
         print(f"Tokens: {str(response.usage.total_tokens)}")
         chatbots[ctx.guild.id].append_message(role="assistant",content=response.choices[0].message.content)
-        await ctx.send(response.choices[0].message.content, tts=True)
+        if (len(response.choices[0].message.content) > 2000):
+            chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
+            for chunk in chunks:
+                await ctx.send(chunk)
+        else:
+            await ctx.send(response.choices[0].message.content)
 
 async def thoughts(ctx, x: int):
     limit = 25
@@ -76,4 +89,9 @@ async def thoughts(ctx, x: int):
             print(recent_messages[1:])
             print(f"ColinBot: {response.choices[0].message.content}")
             print(f"Tokens: {str(response.usage.total_tokens)}")
-            await ctx.send(response.choices[0].message.content)
+            if (len(response.choices[0].message.content) > 2000):
+                chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
+                for chunk in chunks:
+                    await ctx.send(chunk)
+            else:
+                await ctx.send(response.choices[0].message.content)
