@@ -2,7 +2,7 @@ import yt_dlp
 import asyncio
 import discord
 
-yt_dl_opts = {'format': 'bestaudio/best'}
+yt_dl_opts = {'format': 'bestaudio/best', 'cookiefile': '~/.yt-dlp-cookies.txt'}
 ytdl = yt_dlp.YoutubeDL(yt_dl_opts)
 ffmpeg_options = {'options': "-vn"}
 
@@ -70,7 +70,7 @@ class Player:
             async with ctx.typing():
                 song = await self.dequeue(ctx)
                 self.playing = song
-                player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options, executable="bin/ffmpeg.exe")
+                player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options)
                 await ctx.send(f"Now playing: {song.title}")
                 self.client.play(player)
             while (self.client.is_playing() or self.pause):
