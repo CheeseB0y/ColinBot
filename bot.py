@@ -47,8 +47,8 @@ def main():
         await misc.ninja(ctx)
 
     @bot.command(name="random", help="Chosen by fair dice roll. Guaranteed to be random.")
-    async def getRandomNumber(ctx):
-        await misc.getRandomNumber(ctx)
+    async def get_random_number(ctx):
+        await misc.get_random_number(ctx)
 
     @bot.command(name="waifu", help="")
     async def waifu(ctx):
