@@ -8,6 +8,7 @@ import os
 import atexit
 import music
 import chatbot
+import gamba
 import misc
 
 def main():
@@ -53,6 +54,10 @@ def main():
     @bot.command(name="waifu", help="")
     async def waifu(ctx):
         await misc.waifu(ctx)
+
+    @bot.command(name="blackjack", help="")
+    async def blackjack(ctx):
+        await gamba.blackjack(ctx)
 
     @bot.command(name="join", help="ColinBot will join the current voice channel the user who sent the command is in.")
     async def join(ctx):
