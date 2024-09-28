@@ -58,6 +58,10 @@ def main():
     @bot.command(name="blackjack", help="")
     async def blackjack(ctx):
         await gamba.blackjack(ctx)
+    
+    @bot.command(name="bj", help="")
+    async def bj(ctx):
+        await gamba.blackjack(ctx)
 
     @bot.command(name="join", help="ColinBot will join the current voice channel the user who sent the command is in.")
     async def join(ctx):

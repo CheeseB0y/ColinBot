@@ -114,9 +114,9 @@ class Blackjack:
             return msg.author == ctx.author and msg.channel == ctx.channel
         try:
             response = await ctx.bot.wait_for('message', timeout=30.0, check=check)
-            if response.content.lower() == "hit":
+            if response.content.lower() in ["hit", "h"]:
                 await self.hit(ctx)
-            elif response.content.lower() == "stand":
+            elif response.content.lower() in ["stand", "s"]:
                 await self.stand(ctx)
             else:
                 await ctx.send(f"{response.content} is not a valid input.")
