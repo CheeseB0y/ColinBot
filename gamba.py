@@ -1,5 +1,6 @@
 import random
 import asyncio
+import econ
 
 class PlayingCard:
     def __init__(self, suit, rank):
@@ -98,16 +99,19 @@ class Blackjack:
         self.player.draw(self.deck)
         self.dealer.draw(self.deck)
 
-    async def play(self, ctx):
+    async def play(self, ctx, bet):
         self.deal()
-        async with ctx.typing():
-            await ctx.send(f"Dealer: *Face Down* {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.has_ace() else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
-        if self.player.strength() == 21:
-            await self.game_outcome(ctx)
+        if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
+            async with ctx.typing():
+                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.has_ace() else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+            if self.player.strength() == 21:
+                await self.game_outcome(ctx, bet)
+            else:
+                await self.player_choice(ctx, bet)
         else:
-            await self.player_choice(ctx)
+            await ctx.send("Try again.")
     
-    async def player_choice(self, ctx):
+    async def player_choice(self, ctx, bet):
         async with ctx.typing():
             await ctx.send(f"Would you like to hit or stand?")
         def check(msg):
@@ -115,39 +119,39 @@ class Blackjack:
         try:
             response = await ctx.bot.wait_for('message', timeout=30.0, check=check)
             if response.content.lower() in ["hit", "h"]:
-                await self.hit(ctx)
+                await self.hit(ctx, bet)
             elif response.content.lower() in ["stand", "s"]:
-                await self.stand(ctx)
+                await self.stand(ctx, bet)
             else:
                 await ctx.send(f"{response.content} is not a valid input.")
-                await self.player_choice(ctx)
+                await self.player_choice(ctx, bet)
         except asyncio.TimeoutError:
             async with ctx.typing():
                 await ctx.send("Time out error")
 
-    async def hit(self, ctx):
+    async def hit(self, ctx, bet):
         async with ctx.typing():
             await ctx.send(f"{self.player.draw(self.deck)},{' soft' if self.player.soft() else ''} {self.player.strength()} points.")
         if self.player.strength() > 21:
-            await self.game_outcome(ctx)
+            await self.game_outcome(ctx, bet)
         elif self.player.strength() < 21:
-            await self.player_choice(ctx)
+            await self.player_choice(ctx, bet)
         else:
-            await self.game_outcome(ctx)
+            await self.game_outcome(ctx, bet)
 
-    async def stand(self, ctx):
-        await self.dealers_turn(ctx)
+    async def stand(self, ctx, bet):
+        await self.dealers_turn(ctx, bet)
         
-    async def dealers_turn(self, ctx):
+    async def dealers_turn(self, ctx, bet):
         async with ctx.typing():
             await ctx.send(f"Dealer: {self.dealer}")
         while self.dealer.strength() < 17:
             async with ctx.typing():
                 await asyncio.sleep(1)
                 await ctx.send(f"{self.dealer.draw(self.deck)},{' soft' if self.dealer.soft() else ''} {self.dealer.strength()} points.")
-        await self.game_outcome(ctx)
+        await self.game_outcome(ctx, bet)
         
-    async def game_outcome(self, ctx):
+    async def game_outcome(self, ctx, bet):
         async with ctx.typing():
             await ctx.send(f"Dealer has {self.dealer}\nPlayer has {self.player}")
             if self.dealer.strength() == self.player.strength():
@@ -155,20 +159,27 @@ class Blackjack:
             elif self.player.strength == 21:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
+                await econ.add_points(ctx, bet)
             elif self.player.strength() > 21:
                 await ctx.send("Bust, you lose.")
+                await econ.lose_points(ctx, bet)
             elif self.dealer.strength() == 21:
                 await ctx.send("Blackjack, you lose.")
+                await econ.lose_points(ctx, bet)
             elif self.dealer.strength() > 21:
                 await ctx.send("Dealer busts, you win!")
+                await econ.add_points(ctx, bet)
             elif self.dealer.strength() > self.player.strength():
                 await ctx.send("You lose.")
+                await econ.lose_points(ctx, bet)
             elif self.dealer.strength() < self.player.strength():
                 await ctx.send("You win!")
+                await econ.add_points(ctx, bet)
             else:
                 await ctx.send("This is an edge case CheeseB0y did not account for, you win?")
+                await econ.add_points(ctx, bet)
         
     
-async def blackjack(ctx):
+async def blackjack(ctx, bet):
     game = Blackjack()
-    await game.play(ctx)
+    await game.play(ctx, bet)

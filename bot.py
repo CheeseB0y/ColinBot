@@ -9,6 +9,7 @@ import atexit
 import music
 import chatbot
 import gamba
+import econ
 import misc
 
 def main():
@@ -56,12 +57,20 @@ def main():
         await misc.waifu(ctx)
 
     @bot.command(name="blackjack", help="")
-    async def blackjack(ctx):
-        await gamba.blackjack(ctx)
+    async def blackjack(ctx, bet: int):
+        await gamba.blackjack(ctx, bet)
     
     @bot.command(name="bj", help="")
-    async def bj(ctx):
-        await gamba.blackjack(ctx)
+    async def bj(ctx, bet: int):
+        await gamba.blackjack(ctx, bet)
+
+    @bot.command(name="daily", help="")
+    async def daily(ctx):
+        await econ.daily(ctx)
+
+    @bot.command(name="coins", help="")
+    async def coins(ctx):
+        await econ.coins(ctx)
 
     @bot.command(name="join", help="ColinBot will join the current voice channel the user who sent the command is in.")
     async def join(ctx):
@@ -100,6 +109,7 @@ def main():
         await music.queue(ctx)
 
     atexit.register(misc.on_shutdown)
+    atexit.register(econ.close)
     
     bot.run(DISCORD_TOKEN)
 
