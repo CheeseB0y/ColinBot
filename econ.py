@@ -60,7 +60,7 @@ async def lose_points(ctx, amount: int):
     update = {"$inc": {"points": -amount}}
     collection.update_one(user, update)
     async with ctx.typing():
-        await ctx.send(f"You lost {amount} Colin Coins.")
+        await ctx.send(f"You lose {amount} Colin Coins.")
         await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
 
 @verify_user
