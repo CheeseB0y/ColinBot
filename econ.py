@@ -65,7 +65,7 @@ async def lose_points(ctx, amount: int):
 
 @verify_user
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
-    if get_points(ctx) > bet and min_bet <= bet <= max_bet:
+    if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
         async with ctx.typing():
             await ctx.send(f"you have wagered {bet} Colin Coins, good luck!")
         return True
