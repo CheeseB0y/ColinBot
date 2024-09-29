@@ -97,12 +97,16 @@ async def send_points(ctx, amount: int, recipient):
         if get_points(ctx) >= amount > 0:
             change_points(ctx, -amount)
             user_id = int(recipient.replace('<@', '').replace('>', ''))
+            if collection.find_one(user) is None:
+                ctx.sent(f"User user_id:{user_id} does not exist in the Colin Coin Economy.")
             user = {"user_id": user_id}
             update = {"$inc": {"points": amount}}
             collection.update_one(user, update)
             await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
+            return True
         else:
             await ctx.send(f"{amount} is an invalid amount, you have {get_points(ctx)} Colin Coins.")
+            return False
 
 @verify_user
 async def daily(ctx):

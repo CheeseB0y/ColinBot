@@ -99,8 +99,8 @@ def main():
     async def queue(ctx):
         await music.queue(ctx)
 
-    atexit.register(misc.on_shutdown)
     atexit.register(econ.close)
+    atexit.register(misc.on_shutdown)
     
     bot.run(DISCORD_TOKEN)
 
