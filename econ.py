@@ -112,9 +112,13 @@ async def daily(ctx):
     daily_points = 100 
     if await eligable_for_daily(ctx):
         async with ctx.typing():
-            await change_points(ctx, daily_points)
+            change_points(ctx, daily_points)
             await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
             await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
+            user_id = ctx.author.id
+            user = {"user_id": user_id}
+            reset = {"$set": {"daily_reset": datetime.now(timezone.utc)}}
+            collection.update_one(user, reset)
     else:
         await time_remaining(ctx)
 
