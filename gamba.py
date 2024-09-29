@@ -103,7 +103,7 @@ class Blackjack:
         self.deal()
         if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
             async with ctx.typing():
-                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == "Ace" else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
             if self.player.strength() == 21:
                 await self.game_outcome(ctx, bet)
             else:
