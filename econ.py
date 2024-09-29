@@ -50,6 +50,15 @@ def change_points(ctx, amount: int):
     update = {"$inc": {"points": amount}}
     collection.update_one(user, update)
 
+async def send_points(ctx, amount: int, recipient):
+    async with ctx.typing():
+        change_points(ctx, -amount)
+        user_id = int(recipient.replace('<@', '').replace('>', ''))
+        user = {"user_id": user_id}
+        update = {"$inc": {"points": amount}}
+        collection.update_one(user, update)
+        await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
+
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
     if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
         async with ctx.typing():
@@ -59,6 +68,18 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
         async with ctx.typing():
             await ctx.send(f"that is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
         return False
+
+async def leaderboard(ctx):
+    async with ctx.typing():
+        top_users = collection.find().sort("points", -1).limit(10)
+        leaderboard_message = "**Colin Coins Leaderboard**\n\n"
+        rank = 1
+        for user in top_users:
+            username = user.get("username", "Unknown")
+            points = user.get("points", 0)
+            leaderboard_message += f"{rank}. {username}: {points} Colin Coins\n"
+            rank += 1
+        await ctx.send(leaderboard_message)
 
 async def eligable_for_daily(ctx):
     if get_user_data(ctx).get("daily_reset").replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc) - timedelta(days=1):

@@ -103,7 +103,7 @@ class Blackjack:
         self.deal()
         if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
             async with ctx.typing():
-                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.hand[1].rank == 'Ace' else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
             if self.player.strength() == 21:
                 await self.game_outcome(ctx, bet)
             else:
@@ -132,9 +132,7 @@ class Blackjack:
     async def hit(self, ctx, bet):
         async with ctx.typing():
             await ctx.send(f"{self.player.draw(self.deck)},{' soft' if self.player.soft() else ''} {self.player.strength()} points.")
-        if self.player.strength() > 21:
-            await self.game_outcome(ctx, bet)
-        elif self.player.strength() < 21:
+        if self.player.strength() < 21:
             await self.player_choice(ctx, bet)
         else:
             await self.game_outcome(ctx, bet)
@@ -156,12 +154,12 @@ class Blackjack:
             await ctx.send(f"Dealer has {self.dealer}\nPlayer has {self.player}")
             if self.dealer.strength() == self.player.strength():
                 await ctx.send("Push")
-            elif self.player.strength == 21:
+            elif self.player.strength() == 21:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
+                econ.change_points(ctx, bet)
                 await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
-                econ.change_points(ctx, bet)
             elif self.player.strength() > 21:
                 await ctx.send("Bust, you lose.")
                 econ.change_points(ctx, -bet)
@@ -190,6 +188,7 @@ class Blackjack:
             else:
                 await ctx.send("This is an edge case CheeseB0y did not account for, you win?")
                 econ.change_points(ctx, bet)
+                await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
 class Reel:

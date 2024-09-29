@@ -76,9 +76,17 @@ def main():
     async def daily(ctx):
         await econ.daily(ctx)
 
+    @bot.command(name="send", help="")
+    async def send(ctx, amount: int, recipient):
+        await econ.send_points(ctx, amount, recipient)
+
     @bot.command(name="coins", help="")
     async def coins(ctx):
         await econ.coins(ctx)
+
+    @bot.command(name="leaderboard", help="")
+    async def leaderboard(ctx):
+        await econ.leaderboard(ctx)
 
     @bot.command(name="join", help="ColinBot will join the current voice channel the user who sent the command is in.")
     async def join(ctx):
