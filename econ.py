@@ -15,6 +15,15 @@ collection = db["users"]
 def close():
     client.close()
 
+def verify_user(func):
+    @wraps(func)
+    async def wrapper(ctx, *args, **kwargs):
+        user_data = get_user_data(ctx)
+        if user_data is None:
+            await add_user(ctx)
+        return await func(ctx, *args, **kwargs)
+    return wrapper
+
 async def add_user(ctx):
     user_id = ctx.author.id
     username = ctx.author.name
@@ -35,22 +44,11 @@ def get_user_data(ctx):
 def get_points(ctx):
     return get_user_data(ctx).get("points")
 
-def verify_user(func):
-    @wraps(func)
-    async def wrapper(ctx, *args, **kwargs):
-        user_data = get_user_data(ctx)
-        if user_data is None:
-            await add_user(ctx)
-        return await func(ctx, *args, **kwargs)
-    return wrapper
-
 def change_points(ctx, amount: int):
     user_id = ctx.author.id
     user = {"user_id": user_id}
     update = {"$inc": {"points": amount}}
     collection.update_one(user, update)
-
-
 
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
     async with ctx.typing():
@@ -95,12 +93,13 @@ async def time_remaining(ctx):
 async def send_points(ctx, amount: int, recipient):
     async with ctx.typing():
         if get_points(ctx) >= amount > 0:
-            change_points(ctx, -amount)
             user_id = int(recipient.replace('<@', '').replace('>', ''))
-            if collection.find_one(user) is None:
-                ctx.sent(f"User user_id:{user_id} does not exist in the Colin Coin Economy.")
             user = {"user_id": user_id}
             update = {"$inc": {"points": amount}}
+            if collection.find_one(user) is None:
+                await ctx.send(f"User user_id:{user_id} does not exist in the Colin Coin Economy.")
+                return False
+            change_points(ctx, -amount)
             collection.update_one(user, update)
             await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
             return True
