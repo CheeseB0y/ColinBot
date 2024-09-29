@@ -159,25 +159,38 @@ class Blackjack:
             elif self.player.strength == 21:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
+                await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
                 econ.change_points(ctx, bet)
             elif self.player.strength() > 21:
                 await ctx.send("Bust, you lose.")
                 econ.change_points(ctx, -bet)
+                await ctx.send(f"You lose {bet} Colin Coins.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.dealer.strength() == 21:
                 await ctx.send("Blackjack, you lose.")
                 econ.change_points(ctx, -bet)
+                await ctx.send(f"You lose {bet} Colin Coins.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.dealer.strength() > 21:
                 await ctx.send("Dealer busts, you win!")
                 econ.change_points(ctx, bet)
+                await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.dealer.strength() > self.player.strength():
                 await ctx.send("You lose.")
                 econ.change_points(ctx, -bet)
+                await ctx.send(f"You lose {bet} Colin Coins.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.dealer.strength() < self.player.strength():
                 await ctx.send("You win!")
                 econ.change_points(ctx, bet)
+                await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             else:
                 await ctx.send("This is an edge case CheeseB0y did not account for, you win?")
                 econ.change_points(ctx, bet)
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
 class Reel:
     def __init__(self):
