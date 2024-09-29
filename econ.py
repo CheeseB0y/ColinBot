@@ -50,24 +50,16 @@ def change_points(ctx, amount: int):
     update = {"$inc": {"points": amount}}
     collection.update_one(user, update)
 
-async def send_points(ctx, amount: int, recipient):
-    async with ctx.typing():
-        change_points(ctx, -amount)
-        user_id = int(recipient.replace('<@', '').replace('>', ''))
-        user = {"user_id": user_id}
-        update = {"$inc": {"points": amount}}
-        collection.update_one(user, update)
-        await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
+
 
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
-    if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
-        async with ctx.typing():
+    async with ctx.typing():
+        if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
             await ctx.send(f"you have wagered {bet} Colin Coins, good luck!")
-        return True
-    else:
-        async with ctx.typing():
+            return True
+        else:
             await ctx.send(f"that is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
-        return False
+            return False
 
 async def leaderboard(ctx):
     async with ctx.typing():
@@ -88,24 +80,36 @@ async def eligable_for_daily(ctx):
         return False
 
 async def time_remaining(ctx):
-    daily_reset = get_user_data(ctx).get("daily_reset")
-    next_reset = daily_reset.replace(tzinfo=timezone.utc) + timedelta(days=1)
-    time_remaining = next_reset - datetime.now(timezone.utc)
-    if time_remaining.total_seconds() > 0:
         async with ctx.typing():
-            hours, remainder = divmod(time_remaining.seconds, 3600)
-            minutes = remainder // 60
-            await ctx.send(f"Your daily Colin Coin allowance is on cooldown, try again in {hours} hours, {minutes} minutes.")
-    else:
-        async with ctx.typing():
-            await ctx.send("You are eligable for your daily Colin Coin allowance! Please try again.")
+            daily_reset = get_user_data(ctx).get("daily_reset")
+            next_reset = daily_reset.replace(tzinfo=timezone.utc) + timedelta(days=1)
+            time_remaining = next_reset - datetime.now(timezone.utc)
+            if time_remaining.total_seconds() > 0:
+                hours, remainder = divmod(time_remaining.seconds, 3600)
+                minutes = remainder // 60
+                await ctx.send(f"Your daily Colin Coin allowance is on cooldown, try again in {hours} hours, {minutes} minutes.")
+            else:
+                await ctx.send("You are eligable for your daily Colin Coin allowance! Please try again.")
+
+@verify_user
+async def send_points(ctx, amount: int, recipient):
+    async with ctx.typing():
+        if get_points(ctx) >= amount > 0:
+            change_points(ctx, -amount)
+            user_id = int(recipient.replace('<@', '').replace('>', ''))
+            user = {"user_id": user_id}
+            update = {"$inc": {"points": amount}}
+            collection.update_one(user, update)
+            await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
+        else:
+            await ctx.send(f"{amount} is an invalid amount, you have {get_points(ctx)} Colin Coins.")
 
 @verify_user
 async def daily(ctx):
     daily_points = 100 
     if await eligable_for_daily(ctx):
-        await change_points(ctx, daily_points)
         async with ctx.typing():
+            await change_points(ctx, daily_points)
             await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
             await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
     else:
