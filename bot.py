@@ -64,6 +64,10 @@ def main():
     async def bj(ctx, bet: int):
         await gamba.blackjack(ctx, bet)
 
+    @bot.command(name="blowjob", help="")
+    async def blowjob(ctx, bet: int):
+        await gamba.blackjack(ctx, bet)
+
     @bot.command(name="slots", help="")
     async def slots(ctx, bet: int):
         await gamba.slots(ctx, bet)

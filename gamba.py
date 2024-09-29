@@ -103,7 +103,7 @@ class Blackjack:
         self.deal()
         if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
             async with ctx.typing():
-                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.has_ace() else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+                await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.soft() else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == "Ace" else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
             if self.player.strength() == 21:
                 await self.game_outcome(ctx, bet)
             else:
@@ -117,7 +117,7 @@ class Blackjack:
         def check(msg):
             return msg.author == ctx.author and msg.channel == ctx.channel
         try:
-            response = await ctx.bot.wait_for('message', timeout=30.0, check=check)
+            response = await ctx.bot.wait_for('message', timeout=60.0, check=check)
             if response.content.lower() in ["hit", "h"]:
                 await self.hit(ctx, bet)
             elif response.content.lower() in ["stand", "s"]:
@@ -159,25 +159,25 @@ class Blackjack:
             elif self.player.strength == 21:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
-                await econ.add_points(ctx, bet)
+                econ.change_points(ctx, bet)
             elif self.player.strength() > 21:
                 await ctx.send("Bust, you lose.")
-                await econ.lose_points(ctx, bet)
+                econ.change_points(ctx, -bet)
             elif self.dealer.strength() == 21:
                 await ctx.send("Blackjack, you lose.")
-                await econ.lose_points(ctx, bet)
+                econ.change_points(ctx, -bet)
             elif self.dealer.strength() > 21:
                 await ctx.send("Dealer busts, you win!")
-                await econ.add_points(ctx, bet)
+                econ.change_points(ctx, bet)
             elif self.dealer.strength() > self.player.strength():
                 await ctx.send("You lose.")
-                await econ.lose_points(ctx, bet)
+                econ.change_points(ctx, -bet)
             elif self.dealer.strength() < self.player.strength():
                 await ctx.send("You win!")
-                await econ.add_points(ctx, bet)
+                econ.change_points(ctx, bet)
             else:
                 await ctx.send("This is an edge case CheeseB0y did not account for, you win?")
-                await econ.add_points(ctx, bet)
+                econ.change_points(ctx, bet)
 
 class Reel:
     def __init__(self):
@@ -203,7 +203,7 @@ class Slots:
         return f"{self.reel_1.symbol} {self.reel_2.symbol} {self.reel_3.symbol} {self.reel_4.symbol} {self.reel_5.symbol}"
 
     async def spin(self, ctx, bet: int):
-        if await econ.wager(ctx, bet, min_bet=1, max_bet=100):
+        if await econ.wager(ctx, bet, min_bet=1, max_bet=1000):
             self.reel_1.spin()
             self.reel_2.spin()
             self.reel_3.spin()
@@ -232,14 +232,14 @@ class Slots:
             self.points[self.row[-1]] = 3
         elif consecutive_count == 2:
             self.points[self.row[-1]] = 2
-
         await self.payout(ctx, bet)
 
     async def payout(self, ctx, bet):
+        econ.change_points(ctx, -bet)
         if self.points == {}:
             async with ctx.typing():
                 await ctx.send("You lose.")
-                await econ.lose_points(ctx, bet)
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
         else:
             async with ctx.typing():
                 await ctx.send("You win!")
@@ -284,12 +284,16 @@ class Slots:
                         self.prize += bet * 20
                     elif value == 3:
                         self.prize += bet * 50
-            await econ.add_points(ctx, self.prize - bet)
+            econ.change_points(ctx, self.prize)
+            await ctx.send(f"{self.prize} Colin Coins have been added to your wallet.")
+            await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
+@econ.verify_user
 async def slots(ctx, bet: int):
     game = Slots()
     await game.spin(ctx, bet)
         
+@econ.verify_user
 async def blackjack(ctx, bet):
     game = Blackjack()
     await game.play(ctx, bet)

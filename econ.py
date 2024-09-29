@@ -44,26 +44,12 @@ def verify_user(func):
         return await func(ctx, *args, **kwargs)
     return wrapper
 
-@verify_user
-async def add_points(ctx, amount: int):
+def change_points(ctx, amount: int):
     user_id = ctx.author.id
     user = {"user_id": user_id}
     update = {"$inc": {"points": amount}}
     collection.update_one(user, update)
-    async with ctx.typing():
-        await ctx.send(f"{amount} Colin Coins have been added to your wallet.")
-        await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
 
-async def lose_points(ctx, amount: int):
-    user_id = ctx.author.id
-    user = {"user_id": user_id}
-    update = {"$inc": {"points": -amount}}
-    collection.update_one(user, update)
-    async with ctx.typing():
-        await ctx.send(f"You lose {amount} Colin Coins.")
-        await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
-
-@verify_user
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
     if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
         async with ctx.typing():
@@ -74,14 +60,12 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
             await ctx.send(f"that is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
         return False
 
-@verify_user
 async def eligable_for_daily(ctx):
     if get_user_data(ctx).get("daily_reset").replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc) - timedelta(days=1):
         return True
     else:
         return False
 
-@verify_user
 async def time_remaining(ctx):
     daily_reset = get_user_data(ctx).get("daily_reset")
     next_reset = daily_reset.replace(tzinfo=timezone.utc) + timedelta(days=1)
@@ -99,7 +83,10 @@ async def time_remaining(ctx):
 async def daily(ctx):
     daily_points = 100 
     if await eligable_for_daily(ctx):
-        await add_points(ctx, daily_points)
+        await change_points(ctx, daily_points)
+        async with ctx.typing():
+            await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
+            await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
     else:
         await time_remaining(ctx)
 
