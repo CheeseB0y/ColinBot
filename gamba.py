@@ -58,6 +58,10 @@ class Hand:
         drawn_card = deck.draw()
         self.hand.append(drawn_card)
         return drawn_card
+    
+    def add(self, card):
+        self.hand.append(card)
+        return card
 
     def strength(self):
         total = 0
@@ -88,6 +92,7 @@ class Blackjack:
         self.deck = DeckOfCards()
         self.dealer = Hand()
         self.player = Hand()
+        self.splits = 0
 
     def __str__(self):
         return f"Dealer: {self.dealer}\nPlayer: {self.player}"
@@ -106,6 +111,8 @@ class Blackjack:
                 await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.hand[1].rank == 'Ace' else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
             if self.player.strength() == 21:
                 await self.game_outcome(ctx, bet)
+            elif self.dealer.strength() == 21:
+                await self.game_outcome(ctx, bet)
             else:
                 await self.player_choice(ctx, bet)
         else:
@@ -113,7 +120,12 @@ class Blackjack:
     
     async def player_choice(self, ctx, bet):
         async with ctx.typing():
-            await ctx.send(f"Would you like to hit or stand?")
+            if self.player.hand[0] == self.player.hand[1] and bet*2 < econ.get_points(ctx):
+                await ctx.send(f"Would you like to hit, stand, double down, or split?")
+            elif bet*2 < econ.get_points(ctx):
+                await ctx.send(f"Would you like to hit, stand, or double down?")
+            else:
+                await ctx.send(f"Would you like to hit or stand?")
         def check(msg):
             return msg.author == ctx.author and msg.channel == ctx.channel
         try:
@@ -122,6 +134,10 @@ class Blackjack:
                 await self.hit(ctx, bet)
             elif response.content.lower() in ["stand", "s"]:
                 await self.stand(ctx, bet)
+            elif response.content.lower() in ["double down", "doubledown", "double", "d", "dd"] and bet*2 < econ.get_points(ctx):
+                await self.double_down(ctx, bet)
+            elif response.content.lower() in ["split", "sp"] and self.player.hand[0].rank == self.player.hand[1].rank and bet*2 < econ.get_points(ctx):
+                await self.split(ctx, bet)
             else:
                 await ctx.send(f"{response.content} is not a valid input.")
                 await self.player_choice(ctx, bet)
@@ -137,8 +153,35 @@ class Blackjack:
         else:
             await self.game_outcome(ctx, bet)
 
+    async def double_down(self, ctx, bet):
+        async with ctx.typing():
+            await ctx.send(f"You bet {bet} more colin coins.")
+            await ctx.send(f"{self.player.draw(self.deck)},{' soft' if self.player.soft() else ''} {self.player.strength()} points.")
+        if self.player.strength() < 21:
+            await self.dealers_turn(ctx, bet * 2)
+        else:
+            await self.game_outcome(ctx, bet * 2)
+
     async def stand(self, ctx, bet):
         await self.dealers_turn(ctx, bet)
+
+    async def split(self, ctx, bet):
+        await ctx.send("Split is not yet implemented.")
+        await self.player_choice(ctx, bet)
+    #     self.splits += 1
+    #     split_1 = Hand()
+    #     split_2 = Hand()
+    #     split_1.add(self.player.hand[0])
+    #     split_2.add(self.player.hand[1])
+    #     self.player = split_1
+    #     await ctx.send(f"{self.player.draw()}")
+    #     await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.hand[1].rank == 'Ace' else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+    #     await self.player_choice(ctx, bet)
+    #     self.player = split_2
+    #     await ctx.send(f"{self.player.draw()}")
+    #     await ctx.send(f"Dealer: *Face Down*, {self.dealer.hand[1]},{' soft' if self.dealer.hand[1].rank == 'Ace' else ''} {self.dealer.hand[1].power() if not self.dealer.hand[1].rank == 'Ace' else self.dealer.hand[1].power() + 10} points.\nPlayer: {self.player}")
+    #     await self.player_choice(ctx, bet)
+    #     await self.game_outcome(ctx, bet)
         
     async def dealers_turn(self, ctx, bet):
         async with ctx.typing():
@@ -157,7 +200,7 @@ class Blackjack:
             elif self.player.strength() == 21:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
-                econ.change_points(ctx, bet)
+                econ.change_points(ctx, bet*1.5)
                 await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.player.strength() > 21:
@@ -309,3 +352,6 @@ async def slots(ctx, bet: int):
 async def blackjack(ctx, bet):
     game = Blackjack()
     await game.play(ctx, bet)
+
+async def payout(ctx):
+        await ctx.send(f"Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 20x your bet\n\n7s (:seven:):\n3 7s: 30x your bet\n2 7s: 5x your bet\n\nDiamonds (:gem:):\n3 Diamonds: 20x your bet\n2 Diamonds: 3x your bet\n\nStars (:star:):\n3 Stars: 15x your bet\n2 Stars: 2x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 12x your bet\n2 Clovers: 1.5x your bet\n\nBells (:bell:):\n3 Bells: 10x your bet\n2 Bells: 1.5x your bet\n\nBars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 3x your bet\n2 Cherries: 0.5x your be")

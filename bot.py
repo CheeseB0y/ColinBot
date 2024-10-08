@@ -59,6 +59,9 @@ def main():
     @bot.command(name="slots", help="")
     async def slots(ctx, bet: int):
         await gamba.slots(ctx, bet)
+    @bot.command(name="payout", help="")
+    async def payout(ctx):
+        await gamba.payout(ctx)
     @bot.command(name="daily", help="")
     async def daily(ctx):
         await econ.daily(ctx)
