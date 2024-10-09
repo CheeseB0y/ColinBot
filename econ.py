@@ -62,13 +62,14 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
 async def leaderboard(ctx):
     async with ctx.typing():
         top_users = collection.find().sort("points", -1).limit(10)
-        leaderboard_message = "**Colin Coins Leaderboard**\n\n"
+        leaderboard_message = "```\nColin Coins Leaderboard\n\n"
         rank = 1
         for user in top_users:
             username = user.get("username", "Unknown")
             points = user.get("points", 0)
             leaderboard_message += f"{rank}. {username}: {points} Colin Coins\n"
             rank += 1
+        leaderboard_message += "```"
         await ctx.send(leaderboard_message)
 
 async def eligable_for_daily(ctx):

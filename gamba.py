@@ -324,7 +324,7 @@ class Slots_Legacy:
         await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
     async def payout_table(ctx):
-        await ctx.send(f"```Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 20x your bet\n\n7s (:seven:):\n3 7s: 30x your bet\n2 7s: 5x your bet\n\nDiamonds (:gem:):\n3 Diamonds: 20x your bet\n2 Diamonds: 3x your bet\n\nStars (:star:):\n3 Stars: 15x your bet\n2 Stars: 2x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 12x your bet\n2 Clovers: 1.5x your bet\n\nBells (:bell:):\n3 Bells: 10x your bet\n2 Bells: 1.5x your bet\n\nBars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 3x your bet\n2 Cherries: 0.5x your be```")
+        await ctx.send(f"```Pregnant Man:\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 20x your bet\n\n7s:\n3 7s: 30x your bet\n2 7s: 5x your bet\n\nDiamonds:\n3 Diamonds: 20x your bet\n2 Diamonds: 3x your bet\n\nStars:\n3 Stars: 15x your bet\n2 Stars: 2x your bet\n\nFour-leaf clovers:\n3 Clovers: 12x your bet\n2 Clovers: 1.5x your bet\n\nBells:\n3 Bells: 10x your bet\n2 Bells: 1.5x your bet\n\nBars:\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries:\n3 Cherries: 3x your bet\n2 Cherries: 0.5x your be```")
 
 class Slots:
     def __init__(self):
@@ -408,7 +408,7 @@ class Slots:
         await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
     async def payout_table(ctx):
-        await ctx.send(f"```Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 25x your bet\n\n7s (:seven:):\n3 7s: 35x your bet\n2 7s: 6x your bet\n\nGems (:gem:):\n3 Gems: 25x your bet\n2 Gems: 4x your bet\n\nStars (:star:):\n3 Stars: 18x your bet\n2 Stars: 3x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 15x your bet\n2 Clovers: 2x your bet\n\nBells (:bell:):\n3 Bells: 12x your bet\n2 Bells: 2x your bet\n\nChocolate Bars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 4x your bet\n2 Cherries: 1x your bet\n\nLemons (:lemon:):\n3 Lemons: 6x your bet\n2 Lemons: 2x your bet\n\nTangerines (:tangerine:):\n3 Tangerines: 7x your bet\n2 Tangerines: 3x your bet\n\nWatermelons (:watermelon:):\n3 Watermelons: 10x your bet\n2 Watermelons: 3x your bet\n\nApples (:apple:):\n3 Apples: 12x your bet\n2 Apples: 4x your bet\n```")
+        await ctx.send(f"```Pregnant Man:\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 25x your bet\n\n7s:\n3 7s: 35x your bet\n2 7s: 6x your bet\n\nGems:\n3 Gems: 25x your bet\n2 Gems: 4x your bet\n\nStars:\n3 Stars: 18x your bet\n2 Stars: 3x your bet\n\nFour-leaf clovers:\n3 Clovers: 15x your bet\n2 Clovers: 2x your bet\n\nBells:\n3 Bells: 12x your bet\n2 Bells: 2x your bet\n\nChocolate Bars:\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries:\n3 Cherries: 4x your bet\n2 Cherries: 1x your bet\n\nLemons:\n3 Lemons: 6x your bet\n2 Lemons: 2x your bet\n\nTangerines:\n3 Tangerines: 7x your bet\n2 Tangerines: 3x your bet\n\nWatermelons:\n3 Watermelons: 10x your bet\n2 Watermelons: 3x your bet\n\nApples:\n3 Apples: 12x your bet\n2 Apples: 4x your bet\n```")
 
 @econ.verify_user
 async def slots(ctx, bet: int):
@@ -425,4 +425,7 @@ async def blackjack(ctx, bet):
     await game.play(ctx, bet)
 
 async def payout(ctx):
-    await Slots.payout_table(ctx)
+    if ctx.author.id == 115928421204230149:
+        await Slots_Legacy.payout_table(ctx)
+    else:
+        await Slots.payout_table(ctx)
