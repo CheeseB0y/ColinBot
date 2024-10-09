@@ -201,7 +201,7 @@ class Blackjack:
                 await ctx.send("Blackjack!")
                 await ctx.send("You win!")
                 econ.change_points(ctx, bet*1.5)
-                await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"{bet*1.5} Colin Coins have been added to your wallet.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             elif self.player.strength() > 21:
                 await ctx.send("Bust, you lose.")
@@ -234,7 +234,7 @@ class Blackjack:
                 await ctx.send(f"{bet} Colin Coins have been added to your wallet.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
-class Reel:
+class Reel_8:
     def __init__(self):
         self.symbols = (":cherries:", ":chocolate_bar:", ":bell:", ":four_leaf_clover:", ":star:", ":gem:", ":seven:", ":pregnant_man:")
         self.weights = [3, 2, 3, 1, 1, 2, 2, 1]
@@ -243,31 +243,35 @@ class Reel:
     def spin(self):
         self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
 
-class Slots:
+class Reel_12:
     def __init__(self):
-        self.reel_1 = Reel()
-        self.reel_2 = Reel()
-        self.reel_3 = Reel()
-        self.reel_4 = Reel()
-        self.reel_5 = Reel()
+        self.symbols = (":cherries:", ":chocolate_bar:", ":bell:", ":four_leaf_clover:", ":star:", ":gem:", ":seven:", ":pregnant_man:", ":lemon:", ":tangerine:", ":watermelon:", ":apple:")
+        self.weights = [4, 3, 3, 2, 2, 2, 1, 1, 3, 2, 2, 1]  
+        self.symbol = ":question:"
+
+    def spin(self):
+        self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
+
+class Slots_Legacy:
+    def __init__(self):
+        self.reels = [Reel_8() for _ in range(5)]
         self.row = []
         self.points = {}
         self.prize = 0
 
     def __str__(self):
-        return f"{self.reel_1.symbol} {self.reel_2.symbol} {self.reel_3.symbol} {self.reel_4.symbol} {self.reel_5.symbol}"
+        return " ".join(reel.symbol for reel in self.reels)
 
     async def spin(self, ctx, bet: int):
         if await econ.wager(ctx, bet, min_bet=1, max_bet=1000):
-            self.reel_1.spin()
-            self.reel_2.spin()
-            self.reel_3.spin()
-            self.reel_4.spin()
-            self.reel_5.spin()
-            self.row = [self.reel_1.symbol, self.reel_2.symbol, self.reel_3.symbol, self.reel_4.symbol, self.reel_5.symbol]
             async with ctx.typing():
-                await ctx.send(self.__str__())
-                await self.score(ctx, bet)
+                message = await ctx.send(self.__str__())
+                for reel in self.reels:
+                    reel.spin()
+                    await message.edit(content=self.__str__())
+                    await asyncio.sleep(0.5)
+            self.row = [reel.symbol for reel in self.reels]
+            await self.score(ctx, bet)
         else:
             async with ctx.typing():
                 await ctx.send("Try again.")
@@ -291,62 +295,129 @@ class Slots:
 
     async def payout(self, ctx, bet):
         econ.change_points(ctx, -bet)
-        if self.points == {}:
+        if not self.points:
             async with ctx.typing():
                 await ctx.send("You lose.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            return
+        async with ctx.typing():
+            await ctx.send("You win!")
+        for symbol, value in self.points.items():
+            if symbol == ":cherries:":
+                self.prize += bet * (0.5 if value == 2 else 3 if value == 3 else 0)
+            elif symbol == ":chocolate_bar:":
+                self.prize += bet * (1 if value == 2 else 7 if value == 3 else 0)
+            elif symbol == ":bell:":
+                self.prize += bet * (1.5 if value == 2 else 10 if value == 3 else 0)
+            elif symbol == ":four_leaf_clover:":
+                self.prize += bet * (1.5 if value == 2 else 12 if value == 3 else 0)
+            elif symbol == ":star:":
+                self.prize += bet * (2 if value == 2 else 15 if value == 3 else 0)
+            elif symbol == ":gem:":
+                self.prize += bet * (3 if value == 2 else 20 if value == 3 else 0)
+            elif symbol == ":seven:":
+                self.prize += bet * (5 if value == 2 else 30 if value == 3 else 0)
+            elif symbol == ":pregnant_man:":
+                self.prize += bet * (20 if value == 2 else 50 if value == 3 else 0)
+        econ.change_points(ctx, self.prize)
+        await ctx.send(f"{self.prize} Colin Coins have been added to your wallet.")
+        await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+
+    async def payout_table(ctx):
+        await ctx.send(f"```Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 20x your bet\n\n7s (:seven:):\n3 7s: 30x your bet\n2 7s: 5x your bet\n\nDiamonds (:gem:):\n3 Diamonds: 20x your bet\n2 Diamonds: 3x your bet\n\nStars (:star:):\n3 Stars: 15x your bet\n2 Stars: 2x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 12x your bet\n2 Clovers: 1.5x your bet\n\nBells (:bell:):\n3 Bells: 10x your bet\n2 Bells: 1.5x your bet\n\nBars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 3x your bet\n2 Cherries: 0.5x your be```")
+
+class Slots:
+    def __init__(self):
+        self.reels = [Reel_12() for _ in range(5)]
+        self.row = []
+        self.points = {}
+        self.prize = 0
+
+    def __str__(self):
+        return " ".join(reel.symbol for reel in self.reels)
+
+    async def spin(self, ctx, bet: int):
+        if await econ.wager(ctx, bet, min_bet=1, max_bet=1000):
+            async with ctx.typing():
+                message = await ctx.send(self.__str__())
+                for reel in self.reels:
+                    reel.spin()
+                    await message.edit(content=self.__str__())
+                    await asyncio.sleep(0.5)
+            self.row = [reel.symbol for reel in self.reels]
+            await self.score(ctx, bet)
         else:
             async with ctx.typing():
-                await ctx.send("You win!")
-            for symbol, value in self.points.items():
-                if symbol == ":cherries:":
-                    if value == 2:
-                        self.prize += bet * 0.5
-                    elif value == 3:
-                        self.prize += bet * 3
-                elif symbol == ":chocolate_bar:":
-                    if value == 2:
-                        self.prize += bet * 1
-                    elif value == 3:
-                        self.prize += bet * 7
-                elif symbol == ":bell:":
-                    if value == 2:
-                        self.prize += bet * 1.5
-                    elif value == 3:
-                        self.prize += bet * 10
-                elif symbol == ":four_leaf_clover:":
-                    if value == 2:
-                        self.prize += bet * 1.5
-                    elif value == 3:
-                        self.prize += bet * 12
-                elif symbol == ":star:":
-                    if value == 2:
-                        self.prize += bet * 2
-                    elif value == 3:
-                        self.prize += bet * 15
-                elif symbol == ":gem:":
-                    if value == 2:
-                        self.prize += bet * 3
-                    elif value == 3:
-                        self.prize += bet * 20
-                elif symbol == ":seven:":
-                    if value == 2:
-                        self.prize += bet * 5
-                    elif value == 3:
-                        self.prize += bet * 30
-                elif symbol == ":pregnant_man:":
-                    if value == 2:
-                        self.prize += bet * 20
-                    elif value == 3:
-                        self.prize += bet * 50
-            econ.change_points(ctx, self.prize)
-            await ctx.send(f"{self.prize} Colin Coins have been added to your wallet.")
-            await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+                await ctx.send("Try again.")
+
+    async def score(self, ctx, bet):
+        consecutive_count = 1
+        self.points.clear()
+        for i in range(1, len(self.row)):
+            if self.row[i] == self.row[i - 1]:
+                consecutive_count += 1
+            else:
+                if consecutive_count >= 3:
+                    self.points[self.row[i-1]] = 3
+                elif consecutive_count == 2:
+                    self.points[self.row[i-1]] = 2
+                consecutive_count = 1
+        if consecutive_count >= 3:
+            self.points[self.row[-1]] = 3
+        elif consecutive_count == 2:
+            self.points[self.row[-1]] = 2
+        await self.payout(ctx, bet)
+
+    async def payout(self, ctx, bet):
+        econ.change_points(ctx, -bet)
+        self.prize = 0
+        if not self.points:
+            async with ctx.typing():
+                await ctx.send("You lose.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            return
+        async with ctx.typing():
+            await ctx.send("You win!")
+        for symbol, value in self.points.items():
+            if symbol == ":cherries:":
+                self.prize += bet * (1 if value == 2 else 4 if value == 3 else 0)
+            elif symbol == ":chocolate_bar:":
+                self.prize += bet * (1 if value == 2 else 7 if value == 3 else 0)
+            elif symbol == ":bell:":
+                self.prize += bet * (2 if value == 2 else 12 if value == 3 else 0)
+            elif symbol == ":four_leaf_clover:":
+                self.prize += bet * (2 if value == 2 else 15 if value == 3 else 0)
+            elif symbol == ":star:":
+                self.prize += bet * (3 if value == 2 else 18 if value == 3 else 0)
+            elif symbol == ":gem:":
+                self.prize += bet * (4 if value == 2 else 25 if value == 3 else 0)
+            elif symbol == ":seven:":
+                self.prize += bet * (6 if value == 2 else 35 if value == 3 else 0)
+            elif symbol == ":pregnant_man:":
+                self.prize += bet * (25 if value == 2 else 50 if value == 3 else 0)
+            elif symbol == ":lemon:":
+                self.prize += bet * (2 if value == 2 else 6 if value == 3 else 0)
+            elif symbol == ":tangerine:":
+                self.prize += bet * (3 if value == 2 else 7 if value == 3 else 0)
+            elif symbol == ":watermelon:":
+                self.prize += bet * (3 if value == 2 else 10 if value == 3 else 0)
+            elif symbol == ":apple:":
+                self.prize += bet * (4 if value == 2 else 12 if value == 3 else 0)
+        econ.change_points(ctx, self.prize)
+        await ctx.send(f"{self.prize} Colin Coins have been added to your wallet.")
+        await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+
+    async def payout_table(ctx):
+        await ctx.send(f"```Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 25x your bet\n\n7s (:seven:):\n3 7s: 35x your bet\n2 7s: 6x your bet\n\nGems (:gem:):\n3 Gems: 25x your bet\n2 Gems: 4x your bet\n\nStars (:star:):\n3 Stars: 18x your bet\n2 Stars: 3x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 15x your bet\n2 Clovers: 2x your bet\n\nBells (:bell:):\n3 Bells: 12x your bet\n2 Bells: 2x your bet\n\nChocolate Bars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 4x your bet\n2 Cherries: 1x your bet\n\nLemons (:lemon:):\n3 Lemons: 6x your bet\n2 Lemons: 2x your bet\n\nTangerines (:tangerine:):\n3 Tangerines: 7x your bet\n2 Tangerines: 3x your bet\n\nWatermelons (:watermelon:):\n3 Watermelons: 10x your bet\n2 Watermelons: 3x your bet\n\nApples (:apple:):\n3 Apples: 12x your bet\n2 Apples: 4x your bet\n```")
 
 @econ.verify_user
 async def slots(ctx, bet: int):
-    game = Slots()
-    await game.spin(ctx, bet)
+    if ctx.author.id == 115928421204230149:
+        game = Slots_Legacy()
+        await game.spin(ctx, bet)
+    else:
+        game = Slots()
+        await game.spin(ctx, bet)
         
 @econ.verify_user
 async def blackjack(ctx, bet):
@@ -354,4 +425,4 @@ async def blackjack(ctx, bet):
     await game.play(ctx, bet)
 
 async def payout(ctx):
-        await ctx.send(f"Pregnant Man (:pregnant_man:):\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 20x your bet\n\n7s (:seven:):\n3 7s: 30x your bet\n2 7s: 5x your bet\n\nDiamonds (:gem:):\n3 Diamonds: 20x your bet\n2 Diamonds: 3x your bet\n\nStars (:star:):\n3 Stars: 15x your bet\n2 Stars: 2x your bet\n\nFour-leaf clovers (:four_leaf_clover:):\n3 Clovers: 12x your bet\n2 Clovers: 1.5x your bet\n\nBells (:bell:):\n3 Bells: 10x your bet\n2 Bells: 1.5x your bet\n\nBars (:chocolate_bar:):\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries (:cherries:):\n3 Cherries: 3x your bet\n2 Cherries: 0.5x your be")
+    await Slots.payout_table(ctx)
