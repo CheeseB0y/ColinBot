@@ -147,16 +147,19 @@ async def send_points(ctx, amount: int, recipient):
 @verify_user
 async def daily(ctx):
     logger.info(f"{ctx.author.name} called !daily in {ctx.guild}")
-    daily_points = 100 
+    daily_points = 100
+    username = ctx.author.name
+    user_id = ctx.author.id
     if await eligable_for_daily(ctx):
         async with ctx.typing():
             change_points(ctx, daily_points)
             await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
             await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
-            username = ctx.author.name
-            user_id = ctx.author.id
             user = {"user_id": user_id}
-            reset = {"$set": {"daily_reset": datetime.now(timezone.utc)}}
+            try:
+                reset = {"$set": {"daily_reset": datetime.now(timezone.utc)}}
+            except Exception as e:
+                logger.error(f"Unable to update daily_reset timer: {e}")
             collection.update_one(user, reset)
             logger.info(f"{username} has claimed their daily.")
     else:
