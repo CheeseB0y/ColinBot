@@ -11,10 +11,14 @@ import chatbot
 import gamba
 import econ
 import misc
+from logging_config import logger
 
 def main():
     
-    load_dotenv()
+    try:
+        load_dotenv()
+    except Exception as e:
+        logger.critical(f"Unable to load environment variables: {e}")
 
     DISCORD_TOKEN = str(os.getenv('DISCORD_TOKEN'))
     intents = discord.Intents().all()

@@ -1,6 +1,7 @@
 import random
 import asyncio
 import econ
+from logging_config import logger
 
 class PlayingCard:
     def __init__(self, suit, rank):
@@ -412,6 +413,7 @@ class Slots:
 
 @econ.verify_user
 async def slots(ctx, bet: int):
+    logger.info(f"{ctx.author.name} called !slots in {ctx.guild}")
     if ctx.author.id == 115928421204230149:
         game = Slots_Legacy()
         await game.spin(ctx, bet)
@@ -421,10 +423,12 @@ async def slots(ctx, bet: int):
         
 @econ.verify_user
 async def blackjack(ctx, bet):
+    logger.info(f"{ctx.author.name} called !blackjack in {ctx.guild}")
     game = Blackjack()
     await game.play(ctx, bet)
 
 async def payout(ctx):
+    logger.info(f"{ctx.author.name} called !payout in {ctx.guild}")
     if ctx.author.id == 115928421204230149:
         await Slots_Legacy.payout_table(ctx)
     else:

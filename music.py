@@ -2,6 +2,7 @@ import yt_dlp
 import asyncio
 import discord
 from urllib.parse import urlparse
+from logging_config import logger
 
 yt_dl_opts = {'format': 'bestaudio/best', 'cookiefile': '~/.yt-dlp-cookies.txt', 'noplaylist': True, }
 ytdl = yt_dlp.YoutubeDL(yt_dl_opts)
@@ -20,13 +21,16 @@ class Song:
         return f"Title: {self.title}\nUploader: {self.author}\nDuration: {self.duration}s"
         
     def get_video_info(self):
-        with yt_dlp.YoutubeDL(yt_dl_opts) as ydl:
-            if self.is_url():
-                info_dict = ydl.extract_info(self.query, download=False)
-            else:
-                info_dict = ydl.extract_info(f"ytsearch:{self.query}", download=False)
-        return info_dict
-    
+        try:
+            with yt_dlp.YoutubeDL(yt_dl_opts) as ydl:
+                if self.is_url():
+                    info_dict = ydl.extract_info(self.query, download=False)
+                else:
+                    info_dict = ydl.extract_info(f"ytsearch:{self.query}", download=False)
+            return info_dict
+        except Exception as e:
+            logger.error(f"Unable to get video info: {e}")
+
     def is_url(self) -> bool:
         parsed_url = urlparse(self.query)
         if parsed_url.scheme in ("http", "https") and parsed_url.netloc:
@@ -59,6 +63,7 @@ class Player:
         async with ctx.typing():
             self.queue.append(song)
             await ctx.send(f"{song.title} has been added to the queue.")
+        logger.info(f"{song.title} has been added to the queue in {ctx.guild}")
 
     async def dequeue(self, ctx):
         if self.is_empty():
@@ -66,6 +71,7 @@ class Player:
                 await ctx.send("Queue is empty")
             return None
         song = self.queue.pop(0)
+        logger.info(f"{song.title} has been removed from the queue in {ctx.guild}")
         return song
     
     async def clear(self, ctx):
@@ -74,6 +80,7 @@ class Player:
             self.playing = None
             self.active = False
             await ctx.send("Queue has been emptied.")
+        logger.info(f"Queue has been emptied in {ctx.guild}")
     
     async def handle_queue(self, ctx):
         self.active = True
@@ -92,26 +99,34 @@ class Player:
 players = {}
         
 async def join(ctx):
+    logger.info(f"{ctx.author.name} called !join in {ctx.guild}")
     if (ctx.author.voice):
         players[ctx.guild.id] = Player(ctx)
         players[ctx.guild.id].client = await players[ctx.guild.id].channel.connect()
+        logger.info(f"Joined voice channel in {ctx.guild}")
     else:
         async with ctx.typing():
             await ctx.send("User is not in a voice channel.")
+        logger.warning(f"{ctx.author.name} attempted to call join but was not in a voice channel.")
 
 async def leave(ctx):
-    if (players[ctx.guild.id].active):
-        async with ctx.typing():
-            await ctx.send("Cannot leave channel while queue is active. Try !stop instead.")
-        return
+    logger.info(f"{ctx.author.name} called !leave in {ctx.guild}")
     if (ctx.voice_client):
+        if (players[ctx.guild.id].active):
+            async with ctx.typing():
+                await ctx.send("Cannot leave channel while queue is active. Try !stop instead.")
+            logger.warning(f"{ctx.author.name} attempted to call leave while the queue was active.")
+            return
         await players[ctx.guild.id].client.disconnect()
         del players[ctx.guild.id]
+        logger.info(f"Left voice channel in {ctx.guild}")
     else:
         async with ctx.typing():
-            ctx.send("ColinBot is not currently in a voice channel.")
+            await ctx.send("ColinBot is not currently in a voice channel.")
+        logger.warning(f"{ctx.author.name} attempted to call leave while the bot was not in any voice channel.")
 
 async def play(ctx, url: str):
+    logger.info(f"{ctx.author.name} called !play in {ctx.guild}")
     song = Song(url)
     if (ctx.guild.id not in players):
         await join(ctx)
@@ -120,23 +135,32 @@ async def play(ctx, url: str):
         await players[ctx.guild.id].handle_queue(ctx)
 
 async def pause(ctx):
+    logger.info(f"{ctx.author.name} called !pause in {ctx.guild}")
     players[ctx.guild.id].pause = True
     players[ctx.guild.id].client.pause()
+    logger.info(f"Player has been paused in {ctx.guild}")
 
 async def resume(ctx):
+    logger.info(f"{ctx.author.name} called !resume in {ctx.guild}")
     players[ctx.guild.id].pause = False
     await players[ctx.guild.id].client.resume()
+    logger.info(f"Player has been resumed in {ctx.guild}")
 
 async def stop(ctx):
+    logger.info(f"{ctx.author.name} called !stop in {ctx.guild}")
     await players[ctx.guild.id].clear(ctx)
     players[ctx.guild.id].client.stop()
     await leave(ctx)
+    logger.info(f"Player has been stopped in {ctx.guild}")
 
 async def skip(ctx):
+    logger.info(f"{ctx.author.name} called !skip in {ctx.guild}")
     await players[ctx.guild.id].client.stop()
 
 async def playing(ctx):
+    logger.info(f"{ctx.author.name} called !playing in {ctx.guild}")
     await ctx.send(players[ctx.guild.id].playing)
 
 async def queue(ctx):
+    logger.info(f"{ctx.author.name} called !queue in {ctx.guild}")
     await ctx.send(players[ctx.guild.id])

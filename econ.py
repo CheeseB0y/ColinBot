@@ -4,16 +4,28 @@ from functools import wraps
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta, timezone
+from logging_config import logger
 
-load_dotenv()
+try:
+    load_dotenv()
+except Exception as e:
+    logger.critical(f"Unable to load environment variables: {e}")
 
-uri = os.getenv('MONGODB_URI')
-client = MongoClient(uri, server_api=ServerApi('1'))
-db = client[os.getenv('MONGODB_DB')]
-collection = db["users"]
+try:
+    uri = os.getenv('MONGODB_URI')
+    client = MongoClient(uri, server_api=ServerApi('1'))
+    db = client[os.getenv('MONGODB_DB')]
+    collection = db["users"]
+    logger.info("MongoDB client connection has been established successfully.")
+except Exception as e:
+    logger.error(f"Failed to connect to MongoDB: {e}")
 
 def close():
-    client.close()
+    try:
+        client.close()
+        logger.info("MongoDB client connection has been closed successfully.")
+    except Exception as e:
+        logger.error(f"Failed to close MongoDB connection: {e}")
 
 def verify_user(func):
     @wraps(func)
@@ -25,6 +37,7 @@ def verify_user(func):
     return wrapper
 
 async def add_user(ctx):
+    logger.info("New user detected, adding to Colin Coin database.")
     user_id = ctx.author.id
     username = ctx.author.name
     starting_points = 500
@@ -32,34 +45,56 @@ async def add_user(ctx):
                 "username": username,
                 "points": starting_points,
                 "daily_reset": datetime.now(timezone.utc)}
-    collection.insert_one(document)
+    try:
+        collection.insert_one(document)
+        logger.info(f"{username} user_id:{user_id} has been added to the Colin Coin database.")
+    except Exception as e:
+        logger.error(f"Unable to add {username} user_id:{user_id} to Colin Coin database: {e}")
     async with ctx.typing():
         await ctx.send(f"New user detected. Welcome to the Colin Coin economy {username}! You start with {starting_points} Colin Coins. Come back in 24 hours for your daily allowance.")
 
 def get_user_data(ctx):
     user_id = ctx.author.id
     user = {"user_id": user_id}
-    return collection.find_one(user)
+    try:
+        return collection.find_one(user)
+    except Exception as e:
+        logger.error(f"Could not get user data: {e}")
+        return None
 
 def get_points(ctx):
-    return get_user_data(ctx).get("points")
+    try:
+        return get_user_data(ctx).get("points")
+    except Exception as e:
+        logger.error(f"Could not get points: {e}")
+        return None
 
 def change_points(ctx, amount: int):
+    username = ctx.author.name
     user_id = ctx.author.id
     user = {"user_id": user_id}
     update = {"$inc": {"points": amount}}
-    collection.update_one(user, update)
+    try:
+        collection.update_one(user, update)
+        logger.info(f"{username} had {amount} Colin Coins added to their account.")
+    except Exception as e:
+        logger.error(f"Could not adjust points for {username}: {e}")
+
 
 async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
+    username = ctx.author.name
     async with ctx.typing():
         if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
             await ctx.send(f"you have wagered {bet} Colin Coins, good luck!")
+            logger.info(f"{username} has wagered {bet} Colin Coins.")
             return True
         else:
             await ctx.send(f"that is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
+            logger.warning(f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.: {e}")
             return False
 
 async def leaderboard(ctx):
+    logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
     async with ctx.typing():
         top_users = collection.find().sort("points", -1).limit(10)
         leaderboard_message = "```\nColin Coins Leaderboard\n\n"
@@ -92,6 +127,7 @@ async def time_remaining(ctx):
 
 @verify_user
 async def send_points(ctx, amount: int, recipient):
+    logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
     async with ctx.typing():
         if get_points(ctx) >= amount > 0:
             user_id = int(recipient.replace('<@', '').replace('>', ''))
@@ -110,20 +146,27 @@ async def send_points(ctx, amount: int, recipient):
 
 @verify_user
 async def daily(ctx):
+    logger.info(f"{ctx.author.name} called !daily in {ctx.guild}")
     daily_points = 100 
     if await eligable_for_daily(ctx):
         async with ctx.typing():
             change_points(ctx, daily_points)
             await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
             await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
+            username = ctx.author.name
             user_id = ctx.author.id
             user = {"user_id": user_id}
             reset = {"$set": {"daily_reset": datetime.now(timezone.utc)}}
             collection.update_one(user, reset)
+            logger.info(f"{username} has claimed their daily.")
     else:
         await time_remaining(ctx)
+        logger.warning(f"{username} tried to claim their daily but it is still on cooldown.")
 
 @verify_user
 async def coins(ctx):
+    logger.info(f"{ctx.author.name} called !coins in {ctx.guild}")
     async with ctx.typing():
-        await ctx.send(f"You have {get_points(ctx)} Colin Coins.")
+        coins = get_points(ctx)
+        logger.info(f"{ctx.author.name} has {coins} Colin Coins")
+        await ctx.send(f"You have {coins} Colin Coins.")
