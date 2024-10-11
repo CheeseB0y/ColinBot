@@ -125,7 +125,7 @@ async def leave(ctx):
             await ctx.send("ColinBot is not currently in a voice channel.")
         logger.warning(f"{ctx.author.name} attempted to call leave while the bot was not in any voice channel.")
 
-async def play(ctx, url: str):
+async def play(ctx, url):
     logger.info(f"{ctx.author.name} called !play in {ctx.guild}")
     if url == None:
         async with ctx.typing():

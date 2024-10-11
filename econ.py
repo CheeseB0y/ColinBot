@@ -126,7 +126,7 @@ async def time_remaining(ctx):
                 await ctx.send("You are eligable for your daily Colin Coin allowance! Please try again.")
 
 @verify_user
-async def send_points(ctx, amount: int, recipient):
+async def send_points(ctx, amount, recipient):
     logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
     async with ctx.typing():
         if amount == None or recipient == None:
