@@ -4,9 +4,6 @@ import os
 import sys
 
 class StreamToLogger(object):
-    """
-    Custom class to redirect sys.stdout or sys.stderr to a logger.
-    """
     def __init__(self, logger, log_level=logging.INFO):
         self.logger = logger
         self.log_level = log_level

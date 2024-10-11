@@ -31,7 +31,7 @@ def main():
     async def on_message(message):
         await chatbot.reply(message, bot)
     @bot.command(name="thoughts", help="Review the past x messages and give thoughts on the conversation.")
-    async def thoughts(ctx, x: int):
+    async def thoughts(ctx, x=None):
         await chatbot.thoughts(ctx, x)
     @bot.command(name="tts", help="Text to speech chatbot response.")
     async def tts(ctx):
@@ -52,19 +52,19 @@ def main():
     async def waifu(ctx):
         await misc.waifu(ctx)
     @bot.command(name="blackjack", help="Blackjack game, bet with Colin Coins.")
-    async def blackjack(ctx, bet: int):
+    async def blackjack(ctx, bet=None):
         await gamba.blackjack(ctx, bet)  
     @bot.command(name="bj", help="Short for blackjack.")
-    async def bj(ctx, bet: int):
+    async def bj(ctx, bet=None):
         await gamba.blackjack(ctx, bet)
     @bot.command(name="blowjob", help="Long for bj.")
-    async def blowjob(ctx, bet: int):
+    async def blowjob(ctx, bet=None):
         await gamba.blackjack(ctx, bet)
     @bot.command(name="slots", help="Slot machine game, bet with Colin Coins.")
-    async def slots(ctx, bet: int):
+    async def slots(ctx, bet=None):
         await gamba.slots(ctx, bet)
     @bot.command(name="sluts", help="Short for slots.")
-    async def sluts(ctx, bet: int):
+    async def sluts(ctx, bet=None):
         await gamba.slots(ctx, bet)
     @bot.command(name="payout", help="Sends payout amounts for slots game.")
     async def payout(ctx):
@@ -73,7 +73,7 @@ def main():
     async def daily(ctx):
         await econ.daily(ctx)
     @bot.command(name="send", help="Send Colin Coins to another user.")
-    async def send(ctx, amount: int, recipient):
+    async def send(ctx, amount=None, recipient=None):
         await econ.send_points(ctx, amount, recipient)
     @bot.command(name="coins", help="Check your Colin Coin Balance")
     async def coins(ctx):
@@ -88,7 +88,7 @@ def main():
     async def leave(ctx):
         await music.leave(ctx)
     @bot.command(name="play", help="Play a song from a youtube link.")
-    async def play(ctx, url: str):
+    async def play(ctx, url=None):
         await music.play(ctx, url)
     @bot.command(name="pause", help="Pause music playback.")
     async def pause(ctx):

@@ -129,6 +129,10 @@ async def time_remaining(ctx):
 async def send_points(ctx, amount: int, recipient):
     logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
     async with ctx.typing():
+        if amount == None or recipient == None:
+            await ctx.send(f"You must provide an amount and a recipient in that order, try again.")
+            logger.warning(f"User {ctx.author.name} in {ctx.guild} attempted to call !send without providing an amount and/or recipient.")
+            return False
         if get_points(ctx) >= amount > 0:
             user_id = int(recipient.replace('<@', '').replace('>', ''))
             user = {"user_id": user_id}
@@ -142,6 +146,7 @@ async def send_points(ctx, amount: int, recipient):
             return True
         else:
             await ctx.send(f"{amount} is an invalid amount, you have {get_points(ctx)} Colin Coins.")
+            logger.warning(f"User {ctx.author.name} in {ctx.guild} attempted to send an invalid amount of Colin Coins to another user.")
             return False
 
 @verify_user
@@ -152,7 +157,7 @@ async def daily(ctx):
     user_id = ctx.author.id
     if await eligable_for_daily(ctx):
         async with ctx.typing():
-            change_points(ctx, daily_points)
+            change_points(ctx, daily_points) 
             await ctx.send(f"{daily_points} Colin Coins have been added to your wallet.")
             await ctx.send(f"You now have {get_points(ctx)} Colin Coins.")
             user = {"user_id": user_id}

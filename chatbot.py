@@ -97,21 +97,25 @@ async def thoughts(ctx, x: int):
     limit = 25
     logger.info(f"{ctx.author.name} called !thoughts in {ctx.guild}")
     async with ctx.typing():
+        if x == None:
+            await ctx.send(f"You must provide a number of messages limited to {limit}.")
+            logger.warning(f"User {ctx.author.name} in {ctx.guild} attempted to call !thoughts without providing a number of messages in {ctx.guild}.")
+            return
         if x > limit:
-            logger.warning(f"Thoughts function is limited to {limit} messages. User {ctx.author.name} in {ctx.guild} attempted to call !thoughts for {x} messages.")
             await ctx.send(f"Thoughts function is limited to {limit} messages.")
+            logger.warning(f"Thoughts function is limited to {limit} messages. User {ctx.author.name} in {ctx.guild} attempted to call !thoughts for {x} messages.")
+            return
+        recent_messages = [ChatBot.system_message]
+        async for message in ctx.channel.history(limit=x+1):
+            content = f"{message.author.name}: {message.content}"
+            recent_messages.append({"role": "user", "content": content})
+        response = ChatBot.get_completion(recent_messages[1:])
+        if (len(response.choices[0].message.content) > 2000):
+            chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
+            for chunk in chunks:
+                await ctx.send(chunk)
         else:
-            recent_messages = [ChatBot.system_message]
-            async for message in ctx.channel.history(limit=x+1):
-                content = f"{message.author.name}: {message.content}"
-                recent_messages.append({"role": "user", "content": content})
-            response = ChatBot.get_completion(recent_messages[1:])
-            if (len(response.choices[0].message.content) > 2000):
-                chunks = ChatBot.split_string_by_length(response.choices[0].message.content, 2000)
-                for chunk in chunks:
-                    await ctx.send(chunk)
-            else:
-                await ctx.send(response.choices[0].message.content)
+            await ctx.send(response.choices[0].message.content)
     logger.info(recent_messages[1:])
     logger.info(f"ColinBot: {response.choices[0].message.content}")
     logger.info(f"Tokens: {str(response.usage.total_tokens)}")

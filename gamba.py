@@ -105,7 +105,7 @@ class Blackjack:
         self.player.draw(self.deck)
         self.dealer.draw(self.deck)
 
-    async def play(self, ctx, bet):
+    async def play(self, ctx, bet: int):
         self.deal()
         if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
             async with ctx.typing():
@@ -412,8 +412,13 @@ class Slots:
         await ctx.send(f"```Pregnant Man:\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 25x your bet\n\n7s:\n3 7s: 35x your bet\n2 7s: 6x your bet\n\nGems:\n3 Gems: 25x your bet\n2 Gems: 4x your bet\n\nStars:\n3 Stars: 18x your bet\n2 Stars: 3x your bet\n\nFour-leaf clovers:\n3 Clovers: 15x your bet\n2 Clovers: 2x your bet\n\nBells:\n3 Bells: 12x your bet\n2 Bells: 2x your bet\n\nChocolate Bars:\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries:\n3 Cherries: 4x your bet\n2 Cherries: 1x your bet\n\nLemons:\n3 Lemons: 6x your bet\n2 Lemons: 2x your bet\n\nTangerines:\n3 Tangerines: 7x your bet\n2 Tangerines: 3x your bet\n\nWatermelons:\n3 Watermelons: 10x your bet\n2 Watermelons: 3x your bet\n\nApples:\n3 Apples: 12x your bet\n2 Apples: 4x your bet\n```")
 
 @econ.verify_user
-async def slots(ctx, bet: int):
+async def slots(ctx, bet):
     logger.info(f"{ctx.author.name} called !slots in {ctx.guild}")
+    if bet == None:
+        async with ctx.typing():
+            await ctx.send(f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins.")
+        logger.warning(f"{ctx.author.name} attempted to play slots without submitting a wager in {ctx.guild}.")
+        return
     if ctx.author.id == 115928421204230149:
         game = Slots_Legacy()
         await game.spin(ctx, bet)
@@ -424,6 +429,11 @@ async def slots(ctx, bet: int):
 @econ.verify_user
 async def blackjack(ctx, bet):
     logger.info(f"{ctx.author.name} called !blackjack in {ctx.guild}")
+    if bet == None:
+        async with ctx.typing():
+            await ctx.send(f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins.")
+        logger.warning(f"{ctx.author.name} attempted to play blackjack without submitting a wager in {ctx.guild}.")
+        return
     game = Blackjack()
     await game.play(ctx, bet)
 

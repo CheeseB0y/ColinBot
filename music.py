@@ -31,7 +31,7 @@ class Song:
         except Exception as e:
             logger.error(f"Unable to get video info: {e}")
 
-    def is_url(self) -> bool:
+    def is_url(self):
         parsed_url = urlparse(self.query)
         if parsed_url.scheme in ("http", "https") and parsed_url.netloc:
             return True
@@ -127,6 +127,10 @@ async def leave(ctx):
 
 async def play(ctx, url: str):
     logger.info(f"{ctx.author.name} called !play in {ctx.guild}")
+    if url == None:
+        async with ctx.typing():
+            await ctx.send(f"You must provide a valid URL, try again.")
+        logger.warning(f"User {ctx.author.name} in {ctx.guild} attempted to call !play without providing a URL.")
     song = Song(url)
     if (ctx.guild.id not in players):
         await join(ctx)
