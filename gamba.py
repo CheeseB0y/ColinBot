@@ -2,6 +2,7 @@ import random
 import asyncio
 import econ
 from logging_config import logger
+from discord.ext import commands
 
 class PlayingCard:
     def __init__(self, suit, rank):
@@ -443,3 +444,35 @@ async def payout(ctx):
         await Slots_Legacy.payout_table(ctx)
     else:
         await Slots.payout_table(ctx)
+
+class Cog(commands.Cog, name="gamba"):
+    def __init__(self, bot):
+        try:
+            self.bot = bot
+            logger.info(f"Gamba cog successfully initialized.")
+        except Exception as e:
+            logger.error(f"Unable to initialize gamba cog: {e}")
+
+    @commands.command(name="blackjack", help="Blackjack game, bet with Colin Coins.")
+    async def blackjack(self, ctx, bet: int=None):
+        await blackjack(ctx, bet)
+
+    @commands.command(name="bj", help="Short for blackjack.")
+    async def bj(self, ctx, bet: int=None):
+        await blackjack(ctx, bet)
+
+    @commands.command(name="blowjob", help="Long for bj.")
+    async def blowjob(self, ctx, bet: int=None):
+        await blackjack(ctx, bet)
+
+    @commands.command(name="slots", help="Slot machine game, bet with Colin Coins.")
+    async def slots(self, ctx, bet: int=None):
+        await slots(ctx, bet)
+
+    @commands.command(name="sluts", help="Short for slots.")
+    async def sluts(self, ctx, bet: int=None):
+        await slots(ctx, bet)
+
+    @commands.command(name="payout", help="Sends payout amounts for slots game.")
+    async def payout(self, ctx):
+        await payout(ctx)

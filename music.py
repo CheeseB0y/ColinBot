@@ -1,11 +1,12 @@
-import yt_dlp
 import asyncio
-import discord
+from yt_dlp import YoutubeDL
+from discord import FFmpegPCMAudio
+from discord.ext import commands
 from urllib.parse import urlparse
 from logging_config import logger
 
 yt_dl_opts = {'format': 'bestaudio/best', 'cookiefile': '~/.yt-dlp-cookies.txt', 'noplaylist': True, }
-ytdl = yt_dlp.YoutubeDL(yt_dl_opts)
+ytdl = YoutubeDL(yt_dl_opts)
 ffmpeg_options = {'options': "-vn"}
 
 class Song:
@@ -22,7 +23,7 @@ class Song:
         
     def get_video_info(self):
         try:
-            with yt_dlp.YoutubeDL(yt_dl_opts) as ydl:
+            with YoutubeDL(yt_dl_opts) as ydl:
                 if self.is_url():
                     info_dict = ydl.extract_info(self.query, download=False)
                 else:
@@ -88,7 +89,7 @@ class Player:
             async with ctx.typing():
                 song = await self.dequeue(ctx)
                 self.playing = song
-                player = discord.FFmpegPCMAudio(song.stream, **ffmpeg_options)
+                player = FFmpegPCMAudio(song.stream, **ffmpeg_options)
                 await ctx.send(f"Now playing: {song.title}")
                 self.client.play(player)
             while (self.client.is_playing() or self.pause):
@@ -168,3 +169,47 @@ async def playing(ctx):
 async def queue(ctx):
     logger.info(f"{ctx.author.name} called !queue in {ctx.guild}")
     await ctx.send(players[ctx.guild.id])
+
+class Cog(commands.Cog, name="music"):
+    def __init__(self, bot):
+        try:
+            self.bot = bot
+            logger.info(f"Music cog successfully initialized.")
+        except Exception as e:
+            logger.error(f"Unable to initialize music cog: {e}")
+
+    @commands.command(name="join", help="Join the current voice channel.")
+    async def join(self, ctx):
+        await join(ctx)
+
+    @commands.command(name="leave", help="Leave the current voice channel.")
+    async def leave(self, ctx):
+        await leave(ctx)
+
+    @commands.command(name="play", help="Play a song from a youtube link.")
+    async def play(self, ctx, url: str=None):
+        await play(ctx, url)
+
+    @commands.command(name="pause", help="Pause music playback.")
+    async def pause(self, ctx):
+        await pause(ctx)
+
+    @commands.command(name="resume", help="Resume music playback.")
+    async def resume(self, ctx):
+        await resume(ctx)
+
+    @commands.command(name="stop", help="End music playback")
+    async def stop(self, ctx):
+        await stop(ctx)
+
+    @commands.command(name="skip", help="Skip current song in queue.")
+    async def skip(self, ctx):
+        await skip(ctx)
+
+    @commands.command(name="playing", help="Now playing.")
+    async def playing(self, ctx):
+        await playing(ctx)
+
+    @commands.command(name="queue", help="Music queue.")
+    async def queue(self, ctx):
+        await queue(ctx)

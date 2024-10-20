@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 from openai import OpenAI
-from logging_config import logger
+from logging_config import logger 
+from discord.ext import commands
 
 try:
     load_dotenv()
@@ -119,3 +120,23 @@ async def thoughts(ctx, x: int):
     logger.info(recent_messages[1:])
     logger.info(f"ColinBot: {response.choices[0].message.content}")
     logger.info(f"Tokens: {str(response.usage.total_tokens)}")
+
+class Cog(commands.Cog, name = "chatbot"):
+    def __init__(self, bot):
+        try:
+            self.bot = bot
+            logger.info(f"Chatbot cog successfully initialized.")
+        except Exception as e:
+            logger.error(f"Unable to initialize chatbot cog: {e}")
+
+    @commands.command(name="thoughts", help="Review the past x messages and give thoughts on the conversation.")
+    async def thoughts(self, ctx, x: int=None):
+        await thoughts(ctx, x)
+
+    @commands.command(name="tts", help="Text to speech chatbot response.")
+    async def tts(self, ctx):
+        await tts(ctx)
+
+    @commands.command(name="chat", help="Mention the bot (@colinbot) to start a conversation.")
+    async def chat(self, ctx):
+        await ctx.send(f"To chat with ColinBot, please mention {self.bot.user.mention} to start a conversation.")

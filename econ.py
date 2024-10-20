@@ -2,9 +2,10 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from functools import wraps
 from dotenv import load_dotenv
-import os
+from os import getenv
 from datetime import datetime, timedelta, timezone
 from logging_config import logger
+from discord.ext import commands
 
 try:
     load_dotenv()
@@ -12,9 +13,9 @@ except Exception as e:
     logger.critical(f"Unable to load environment variables: {e}")
 
 try:
-    uri = os.getenv('MONGODB_URI')
+    uri = getenv('MONGODB_URI')
     client = MongoClient(uri, server_api=ServerApi('1'))
-    db = client[os.getenv('MONGODB_DB')]
+    db = client[getenv('MONGODB_DB')]
     collection = db["users"]
     logger.info("MongoDB client connection has been established successfully.")
 except Exception as e:
@@ -94,7 +95,7 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
             return False
 
 async def leaderboard(ctx):
-    logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
+    logger.info(f"{ctx.author.name} called !leaderboard in {ctx.guild}")
     async with ctx.typing():
         top_users = collection.find().sort("points", -1).limit(10)
         leaderboard_message = "```\nColin Coins Leaderboard\n\n"
@@ -178,3 +179,27 @@ async def coins(ctx):
         coins = get_points(ctx)
         logger.info(f"{ctx.author.name} has {coins} Colin Coins")
         await ctx.send(f"You have {coins} Colin Coins.")
+
+class Cog(commands.Cog, name="econ"):
+    def __init__(self, bot):
+        try:
+            self.bot = bot
+            logger.info(f"Econ cog successfully initialized.")
+        except Exception as e:
+            logger.error(f"Unable to initialize econ cog: {e}")
+
+    @commands.command(name="daily", help="Daily colin coin allowence, resets after 24 hours.")
+    async def daily(self, ctx):
+        await daily(ctx)
+
+    @commands.command(name="send", help="Send Colin Coins to another user.")
+    async def send(self, ctx, amount: int=None, recipient: str=None):
+        await send_points(ctx, amount, recipient)
+        
+    @commands.command(name="coins", help="Check your Colin Coin Balance")
+    async def coins(self, ctx):
+        await coins(ctx)
+
+    @commands.command(name="leaderboard", help="Colin Coin leaderboard, who has the most coins?")
+    async def leaderboard(self, ctx):
+        await leaderboard(ctx)
