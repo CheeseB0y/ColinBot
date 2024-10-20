@@ -86,11 +86,11 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
     username = ctx.author.name
     async with ctx.typing():
         if get_points(ctx) >= bet and min_bet <= bet <= max_bet:
-            await ctx.send(f"you have wagered {bet} Colin Coins, good luck!")
+            await ctx.send(f"You have wagered {bet} Colin Coins, good luck!")
             logger.info(f"{username} has wagered {bet} Colin Coins.")
             return True
         else:
-            await ctx.send(f"that is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
+            await ctx.send(f"That is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.")
             logger.warning(f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.: {e}")
             return False
 
