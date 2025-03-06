@@ -73,6 +73,12 @@ class Hand:
             return total + 10
         return total
     
+    def bStrength(self):
+        total = 0
+        for card in self.hand:
+            total += card.power()
+        return total % 10
+    
     def soft(self):
         if self.has_ace():
             total = 0
@@ -436,6 +442,166 @@ class Slots:
     async def payout_table(ctx):
         await ctx.send(f"```Pregnant Man:\n3 Pregnant Men: 50x your bet\n2 Pregnant Men: 25x your bet\n\n7s:\n3 7s: 35x your bet\n2 7s: 6x your bet\n\nGems:\n3 Gems: 25x your bet\n2 Gems: 4x your bet\n\nStars:\n3 Stars: 18x your bet\n2 Stars: 3x your bet\n\nFour-leaf clovers:\n3 Clovers: 15x your bet\n2 Clovers: 2x your bet\n\nBells:\n3 Bells: 12x your bet\n2 Bells: 2x your bet\n\nChocolate Bars:\n3 Bars: 7x your bet\n2 Bars: 1x your bet\n\nCherries:\n3 Cherries: 4x your bet\n2 Cherries: 1x your bet\n\nLemons:\n3 Lemons: 6x your bet\n2 Lemons: 2x your bet\n\nTangerines:\n3 Tangerines: 7x your bet\n2 Tangerines: 3x your bet\n\nWatermelons:\n3 Watermelons: 10x your bet\n2 Watermelons: 3x your bet\n\nApples:\n3 Apples: 12x your bet\n2 Apples: 4x your bet\n```")
 
+class Baccarat:
+    def __init__(self):
+        self.deck = DeckOfCards()
+        self.banker = Hand()
+        self.player = Hand()
+        self.third = False
+        self.thirdCard = -1
+    async def play(self, ctx, bet: int):
+        if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
+            self.bet = bet
+            async with ctx.typing():
+                await ctx.send(f"Would you like to place your bet on banker or player?")
+            def check(msg):
+                return msg.author == ctx.author and msg.channel == ctx.channel
+            try:
+                response = await ctx.bot.wait_for('message', timeout=60.0, check=check)
+                if response.content.lower() in ["banker", "b"]:
+                    self.betBanker = True
+                elif response.content.lower() in ["player", "p"]:
+                    self.betBanker = False
+                else:
+                    async with ctx.typing():
+                        await ctx.send(f"{response.content} is not a valid input.")
+                    await self.play(self, ctx, bet)
+            except asyncio.TimeoutError:
+                async with ctx.typing():
+                    await ctx.send("Time out error")
+            self.deck.shuffle()
+            async with ctx.typing():
+                await ctx.send(f"Player draw:")
+                await asyncio.sleep(1)
+                await ctx.send(self.player.draw(self.deck))
+                await asyncio.sleep(1)
+                await ctx.send(self.player.draw(self.deck))
+                await asyncio.sleep(1)
+                await ctx.send(f"Player hand strength: {self.player.bStrength()}")
+                await asyncio.sleep(1)
+                await ctx.send(f"Banker draw:")
+                await asyncio.sleep(1)
+                await ctx.send(self.banker.draw(self.deck))
+                await asyncio.sleep(1)
+                await ctx.send(self.banker.draw(self.deck))
+                await asyncio.sleep(1)
+                await ctx.send(f"Banker hand strength: {self.banker.bStrength()}")
+                await asyncio.sleep(1)
+            if (self.banker.bStrength() >= 8 or self.player.bStrength() >= 8):
+                await self.score(ctx)
+                return
+            if (self.player.bStrength() <= 5):
+                await self.playerHit(ctx)
+            elif (self.player.bStrength() > 5):
+                await self.playerStand(ctx)
+            else:
+                async with ctx.typing():
+                    await ctx.send("An error has occured.")
+            if (self.banker.bStrength() <= 2):
+                await self.bankerHit(ctx)
+            elif (self.banker.bStrength() == 7):
+                await self.bankerStand(ctx)
+                await self.score(ctx)
+            elif (self.third == True):
+                if (self.banker.bStrength() == 3):
+                    if (self.thirdCard.power() != 8):
+                        await self.bankerHit(ctx)
+                    else:
+                        await self.bankerStand(ctx)
+                elif (self.banker.bStrength() == 4):
+                    if (self.thirdCard.power() >= 2 and self.thirdCard.power() < 8):
+                        await self.bankerHit(ctx)
+                    else:
+                        await self.bankerStand(ctx)
+                elif (self.banker.bStrength() == 5):
+                    if (self.thirdCard.power() >= 3 and self.thirdCard.power() < 8):
+                        await self.bankerHit(ctx)
+                    else:
+                        await self.bankerStand(ctx)
+                elif (self.banker.bStrength() == 6):
+                    if (self.thirdCard.power() == 6 or self.thirdCard.power() == 7):
+                        await self.bankerHit(ctx)
+                    else:
+                        await self.bankerStand(ctx)
+                elif (self.banker.bStrength() == 7):
+                    await self.bankerStand(ctx)
+                else:
+                    async with ctx.typing():
+                        await ctx.send("An error has occured.")
+            elif (self.banker.bStrength() <= 5):
+                await self.bankerHit(ctx)
+            else:
+                await self.bankerStand(ctx)
+            await self.score(ctx)
+        else:
+            async with ctx.typing():
+                await ctx.send("Try again.")
+
+    async def playerHit(self, ctx):
+        self.third = True
+        async with ctx.typing():
+            await ctx.send(f"Player hits.")
+            self.thirdCard = self.player.draw(self.deck)
+            await asyncio.sleep(1)
+            await ctx.send(self.thirdCard)
+            await ctx.send(f"Player hand strength: {self.player.bStrength()}")
+
+    async def playerStand(self, ctx):
+        async with ctx.typing():
+            await ctx.send(f"Player stands.")
+
+    async def bankerHit(self, ctx):
+        async with ctx.typing():
+            await ctx.send(f"Banker hits.")
+            await ctx.send(self.banker.draw(self.deck))
+            await asyncio.sleep(1)
+            await ctx.send(f"Banker hand strength: {self.banker.bStrength()}")
+    async def bankerStand(self, ctx):
+        async with ctx.typing():
+            await ctx.send(f"Banker stands.")
+    
+    async def score(self, ctx):
+        if (self.banker.bStrength() == self.player.bStrength()):
+            await self.push(ctx)
+        elif (self.banker.bStrength() > self.player.bStrength()):
+            await self.bankerWin(ctx)
+        elif (self.banker.bStrength() < self.player.bStrength()):
+            await self.playerWin(ctx)
+        else:
+            async with ctx.typing():
+                await ctx.send("An error has occured.")
+
+    async def push(self, ctx):
+        await ctx.send("Push.")
+
+    async def bankerWin(self, ctx):
+        async with ctx.typing():
+            await ctx.send(f"Banker wins!")
+            if (self.betBanker == True):
+                econ.change_points(ctx, self.bet)
+                await ctx.send(f"You Win! {self.bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            elif (self.betBanker == False):
+                econ.change_points(ctx, -self.bet)
+                await ctx.send(f"You lose.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            else:
+                await ctx.send(f"An error has occured.")
+
+    async def playerWin(self, ctx):
+        async with ctx.typing():
+            await ctx.send(f"Player wins!")
+            if (self.betBanker == False):
+                econ.change_points(ctx, self.bet)
+                await ctx.send(f"You Win! {self.bet} Colin Coins have been added to your wallet.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            elif (self.betBanker == True):
+                econ.change_points(ctx, -self.bet)
+                await ctx.send(f"You lose.")
+                await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
+            else:
+                await ctx.send(f"An error has occured.")
+    
 @econ.verify_user
 async def slots(ctx, bet):
     logger.info(f"{ctx.author.name} called !slots in {ctx.guild}")
@@ -460,6 +626,17 @@ async def blackjack(ctx, bet):
         logger.warning(f"{ctx.author.name} attempted to play blackjack without submitting a wager in {ctx.guild}.")
         return
     game = Blackjack()
+    await game.play(ctx, bet)
+
+@econ.verify_user
+async def baccarat(ctx, bet):
+    logger.info(f"{ctx.author.name} called !baccarat in {ctx.guild}")
+    if bet == None:
+        async with ctx.typing():
+            await ctx.send(f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins.")
+        logger.warning(f"{ctx.author.name} attempted to play baccarat without submitting a wager in {ctx.guild}.")
+        return
+    game = Baccarat()
     await game.play(ctx, bet)
 
 async def payout(ctx):
@@ -488,6 +665,14 @@ class Cog(commands.Cog, name="gamba"):
     @commands.command(name="blowjob", help="Long for bj.")
     async def blowjob(self, ctx, bet: int=None):
         await blackjack(ctx, bet)
+
+    @commands.command(name="baccarat", help="Baccarat game, bet with Colin Coins.")
+    async def baccarat(self, ctx, bet: int=None):
+        await baccarat(ctx, bet)
+
+    @commands.command(name="b", help="Short for baccarat.")
+    async def baccarat(self, ctx, bet: int=None):
+        await baccarat(ctx, bet)
 
     @commands.command(name="slots", help="Slot machine game, bet with Colin Coins.")
     async def slots(self, ctx, bet: int=None):
