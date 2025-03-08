@@ -1,5 +1,8 @@
 __pycache__
 data
 logs
+docker-compose.yml
 .env
 .gitignore
+README.md
+docker-compose.yml
