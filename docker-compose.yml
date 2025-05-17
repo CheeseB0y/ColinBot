@@ -5,6 +5,5 @@ services:
     env_file:
       - .env
     restart: unless-stopped
-    # uncomment for dev
-    # volumes:
-    #   - ./:/app
+    volumes:
+      - ./:/app
