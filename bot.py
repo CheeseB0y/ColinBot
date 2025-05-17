@@ -38,7 +38,8 @@ def main():
 
     @bot.event
     async def on_message(message):
-        await chatbot.reply(message, bot)
+        if not message.mention_everyone:
+            await chatbot.reply(message, bot)
     
     atexit.register(econ.close)
     atexit.register(misc.on_shutdown)
