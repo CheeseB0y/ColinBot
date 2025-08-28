@@ -682,6 +682,6 @@ class Cog(commands.Cog, name="gamba"):
     async def sluts(self, ctx, bet: int=None):
         await slots(ctx, bet)
 
-    @commands.command(name="payout", help="Sends payout amounts for slots game.")
+    @commands.command(name="payout", help="Displays payout amounts for slots game.")
     async def payout(self, ctx):
         await payout(ctx)
