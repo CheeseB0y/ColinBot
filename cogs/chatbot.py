@@ -127,7 +127,7 @@ async def thoughts(ctx, x: int):
                 f"Thoughts function is limited to {limit} messages. User {ctx.author.name} in {ctx.guild} attempted to call !thoughts for {x} messages."
             )
             return
-        recent_messages = [ChatBot.system_message]
+        recent_messages = [ChatBot(ctx).system_message]
         async for message in ctx.channel.history(limit=x + 1):
             content = f"{message.author.name}: {message.content}"
             recent_messages.append({"role": "user", "content": content})
