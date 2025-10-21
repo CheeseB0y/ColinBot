@@ -1,9 +1,0 @@
-services:
-  bot:
-    image: cheeseb0y/colinbot:latest
-    container_name: colinbot
-    env_file:
-      - .env
-    restart: unless-stopped
-    volumes:
-      - ./:/app
