@@ -2,7 +2,7 @@
 # John Wood
 
 import atexit
-from cogs import music, chatbot, gamba, econ, misc
+from cogs import chatbot, gamba, econ, misc
 from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -11,7 +11,6 @@ from logging_config import logger
 
 
 async def init_cogs(bot):
-    await bot.add_cog(music.Cog(bot))
     await bot.add_cog(chatbot.Cog(bot))
     await bot.add_cog(gamba.Cog(bot))
     await bot.add_cog(econ.Cog(bot))
