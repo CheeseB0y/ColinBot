@@ -1,13 +1,28 @@
 import random
 
+
 class Reel:
     def __init__(self):
-        self.symbols = (":cherries:", ":chocolate_bar:", ":bell:", ":four_leaf_clover:", ":star:", ":gem:", ":seven:", ":pregnant_man:", ":lemon:", ":tangerine:", ":watermelon:", ":apple:")
-        self.weights = [4, 3, 3, 2, 2, 2, 1, 1, 3, 2, 2, 1]  
+        self.symbols = (
+            ":cherries:",
+            ":chocolate_bar:",
+            ":bell:",
+            ":four_leaf_clover:",
+            ":star:",
+            ":gem:",
+            ":seven:",
+            ":pregnant_man:",
+            ":lemon:",
+            ":tangerine:",
+            ":watermelon:",
+            ":apple:",
+        )
+        self.weights = [4, 3, 3, 2, 2, 2, 1, 1, 3, 2, 2, 1]
         self.symbol = ":question:"
 
     def spin(self):
         self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
+
 
 class Slots:
     def __init__(self):
@@ -29,9 +44,9 @@ class Slots:
                 consecutive_count += 1
             else:
                 if consecutive_count >= 3:
-                    self.points[self.row[i-1]] = 3
+                    self.points[self.row[i - 1]] = 3
                 elif consecutive_count == 2:
-                    self.points[self.row[i-1]] = 2
+                    self.points[self.row[i - 1]] = 2
                 consecutive_count = 1
         if consecutive_count >= 3:
             self.points[self.row[-1]] = 3
@@ -103,7 +118,7 @@ class Slots:
                     self.prize += bet * 12
         return self.prize
 
-# Simulate multiple spins with generous payouts
+
 def simulate_slot_machine(spins, bet):
     total_bet = 0
     total_prize = 0
@@ -116,8 +131,8 @@ def simulate_slot_machine(spins, bet):
         total_prize += prize
     return total_bet, total_prize
 
-# Run simulation for 1,000,000 spins with the updated setup
-spins = 1000000
-bet = 1  # Assuming a bet of 1 coin per spin
-results = simulate_slot_machine(spins, bet)
+
+SPINS = 1000000
+BET = 1
+results = simulate_slot_machine(SPINS, BET)
 print(f"Total Bet: {results[0]}, Total Prize: {results[1]}")
