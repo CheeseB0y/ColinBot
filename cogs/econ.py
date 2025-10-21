@@ -109,7 +109,7 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
                 f"That is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
             )
             logger.warning(
-                f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins.: {e}"
+                f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
             )
             return False
 

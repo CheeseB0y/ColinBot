@@ -763,7 +763,7 @@ class Cog(commands.Cog, name="gamba"):
         await baccarat(ctx, bet)
 
     @commands.command(name="b", help="Short for baccarat.")
-    async def baccarat(self, ctx, bet: int = None):
+    async def b(self, ctx, bet: int = None):
         await baccarat(ctx, bet)
 
     @commands.command(name="slots", help="Slot machine game, bet with Colin Coins.")
