@@ -132,7 +132,8 @@ def simulate_slot_machine(spins, bet):
     return total_bet, total_prize
 
 
-SPINS = 1000000
-BET = 1
-results = simulate_slot_machine(SPINS, BET)
-print(f"Total Bet: {results[0]}, Total Prize: {results[1]}")
+if __name__ == "__main__":
+    SPINS = 1000000
+    BET = 1
+    results = simulate_slot_machine(SPINS, BET)
+    print(f"Total Bet: {results[0]}, Total Prize: {results[1]}")
