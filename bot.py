@@ -2,11 +2,11 @@
 # John Wood
 
 import atexit
-from cogs import chatbot, gamba, econ, misc
+from os import getenv
 from discord import Intents
 from discord.ext import commands
 from dotenv import load_dotenv
-from os import getenv
+from cogs import chatbot, gamba, econ, misc
 from logging_config import logger
 
 
@@ -23,7 +23,7 @@ def main():
     except Exception as e:
         logger.critical(f"Unable to load environment variables: {e}")
 
-    DISCORD_TOKEN = str(getenv("DISCORD_TOKEN"))
+    discord_token = str(getenv("DISCORD_TOKEN"))
     intents = Intents().all()
     bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -40,7 +40,7 @@ def main():
     atexit.register(econ.close)
     atexit.register(misc.on_shutdown)
 
-    bot.run(DISCORD_TOKEN)
+    bot.run(discord_token)
 
 
 if __name__ == "__main__":

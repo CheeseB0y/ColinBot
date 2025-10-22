@@ -80,7 +80,7 @@ async def waifu(ctx):
     logger.info(f"{ctx.author.name} called !waifu in {ctx.guild}")
     async with ctx.typing():
         try:
-            response = requests.get("https://api.waifu.pics/sfw/waifu")
+            response = requests.get("https://api.waifu.pics/sfw/waifu", timeout=10)
             data = response.json()
             logger.info(f"Waifu.pics API Response: {response.status_code} {data}")
         except Exception as e:

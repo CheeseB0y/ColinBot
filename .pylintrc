@@ -1,0 +1,4 @@
+[MESSAGES CONTROL]
+disable=
+    W1203, # Use lazy % formatting in logging functions PylintW1203:logging-fstring-interpolation
+

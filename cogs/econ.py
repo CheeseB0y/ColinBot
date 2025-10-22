@@ -104,14 +104,13 @@ async def wager(ctx, bet: int, min_bet=10, max_bet=10000):
             await ctx.send(f"You have wagered {bet} Colin Coins, good luck!")
             logger.info(f"{username} has wagered {bet} Colin Coins.")
             return True
-        else:
-            await ctx.send(
-                f"That is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
-            )
-            logger.warning(
-                f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
-            )
-            return False
+        await ctx.send(
+            f"That is an invalid bet, you have {get_points(ctx)} Colin Coins. Minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
+        )
+        logger.warning(
+            f"{username} attempted to wager an invalid amount ({bet}) minimum bet is {min_bet} Colin Coins, and max bet is {max_bet} Colin Coins."
+        )
+        return False
 
 
 async def leaderboard(ctx):
@@ -130,21 +129,18 @@ async def leaderboard(ctx):
 
 
 async def eligable_for_daily(ctx):
-    if get_user_data(ctx).get("daily_reset").replace(
+    return get_user_data(ctx).get("daily_reset").replace(
         tzinfo=timezone.utc
-    ) <= datetime.now(timezone.utc) - timedelta(days=1):
-        return True
-    else:
-        return False
+    ) <= datetime.now(timezone.utc) - timedelta(days=1)
 
 
 async def time_remaining(ctx):
     async with ctx.typing():
         daily_reset = get_user_data(ctx).get("daily_reset")
         next_reset = daily_reset.replace(tzinfo=timezone.utc) + timedelta(days=1)
-        time_remaining = next_reset - datetime.now(timezone.utc)
-        if time_remaining.total_seconds() > 0:
-            hours, remainder = divmod(time_remaining.seconds, 3600)
+        remaining = next_reset - datetime.now(timezone.utc)
+        if remaining.total_seconds() > 0:
+            hours, remainder = divmod(remaining.seconds, 3600)
             minutes = remainder // 60
             await ctx.send(
                 f"Your daily Colin Coin allowance is on cooldown, try again in {hours} hours, {minutes} minutes."
@@ -159,7 +155,7 @@ async def time_remaining(ctx):
 async def send_points(ctx, amount, recipient):
     logger.info(f"{ctx.author.name} called !send in {ctx.guild}")
     async with ctx.typing():
-        if amount == None or recipient == None:
+        if amount is None or recipient is None:
             await ctx.send(
                 "You must provide an amount and a recipient in that order, try again."
             )
@@ -180,14 +176,13 @@ async def send_points(ctx, amount, recipient):
             collection.update_one(user, update)
             await ctx.send(f"{amount} Colin Coins has been sent to {recipient}")
             return True
-        else:
-            await ctx.send(
-                f"{amount} is an invalid amount, you have {get_points(ctx)} Colin Coins."
-            )
-            logger.warning(
-                f"User {ctx.author.name} in {ctx.guild} attempted to send an invalid amount of Colin Coins to another user."
-            )
-            return False
+        await ctx.send(
+            f"{amount} is an invalid amount, you have {get_points(ctx)} Colin Coins."
+        )
+        logger.warning(
+            f"User {ctx.author.name} in {ctx.guild} attempted to send an invalid amount of Colin Coins to another user."
+        )
+        return False
 
 
 @verify_user
@@ -221,9 +216,9 @@ async def daily(ctx):
 async def coins(ctx):
     logger.info(f"{ctx.author.name} called !coins in {ctx.guild}")
     async with ctx.typing():
-        coins = get_points(ctx)
-        logger.info(f"{ctx.author.name} has {coins} Colin Coins")
-        await ctx.send(f"You have {coins} Colin Coins.")
+        num_coins = get_points(ctx)
+        logger.info(f"{ctx.author.name} has {num_coins} Colin Coins")
+        await ctx.send(f"You have {num_coins} Colin Coins.")
 
 
 class Cog(commands.Cog, name="econ"):

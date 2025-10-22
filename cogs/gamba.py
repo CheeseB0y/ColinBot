@@ -18,8 +18,7 @@ class PlayingCard:
             return 1
         if self.rank in ["Jack", "Queen", "King"]:
             return 10
-        else:
-            return self.rank
+        return self.rank
 
 
 class DeckOfCards:
@@ -75,7 +74,7 @@ class Hand:
             return total + 10
         return total
 
-    def bStrength(self):
+    def b_strength(self):
         total = 0
         for card in self.hand:
             total += card.power()
@@ -88,6 +87,7 @@ class Hand:
                 total += card.power()
             if total + 10 < 21:
                 return True
+            return False
         else:
             return False
 
@@ -121,8 +121,7 @@ class Blackjack:
         if self.played < len(self.player) - 1:
             self.played += 1
             return False
-        else:
-            return True
+        return True
 
     async def play(self, ctx, bet: int, current_hand=0):
         if len(self.player) == 1:
@@ -301,7 +300,7 @@ class Blackjack:
             await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
 
 
-class Reel_8:
+class Reel8:
     def __init__(self):
         self.symbols = (
             ":cherries:",
@@ -320,7 +319,7 @@ class Reel_8:
         self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
 
 
-class Reel_12:
+class Reel12:
     def __init__(self):
         self.symbols = (
             ":cherries:",
@@ -343,9 +342,9 @@ class Reel_12:
         self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
 
 
-class Slots_Legacy:
+class SlotsLegacy:
     def __init__(self):
-        self.reels = [Reel_8() for _ in range(5)]
+        self.reels = [Reel8() for _ in range(5)]
         self.row = []
         self.points = {}
         self.prize = 0
@@ -356,10 +355,10 @@ class Slots_Legacy:
     async def spin(self, ctx, bet: int):
         if await econ.wager(ctx, bet, min_bet=1, max_bet=1000):
             async with ctx.typing():
-                message = await ctx.send(self.__str__())
+                message = await ctx.send(str(self))
                 for reel in self.reels:
                     reel.spin()
-                    await message.edit(content=self.__str__())
+                    await message.edit(content=str(self))
                     await asyncio.sleep(0.5)
             self.row = [reel.symbol for reel in self.reels]
             await self.score(ctx, bet)
@@ -422,7 +421,7 @@ class Slots_Legacy:
 
 class Slots:
     def __init__(self):
-        self.reels = [Reel_12() for _ in range(5)]
+        self.reels = [Reel12() for _ in range(5)]
         self.row = []
         self.points = {}
         self.prize = 0
@@ -433,10 +432,10 @@ class Slots:
     async def spin(self, ctx, bet: int):
         if await econ.wager(ctx, bet, min_bet=1, max_bet=1000):
             async with ctx.typing():
-                message = await ctx.send(self.__str__())
+                message = await ctx.send(str(self))
                 for reel in self.reels:
                     reel.spin()
-                    await message.edit(content=self.__str__())
+                    await message.edit(content=str(self))
                     await asyncio.sleep(0.5)
             self.row = [reel.symbol for reel in self.reels]
             await self.score(ctx, bet)
@@ -513,7 +512,10 @@ class Baccarat:
         self.banker = Hand()
         self.player = Hand()
         self.third = False
-        self.thirdCard = -1
+        self.third_card = -1
+
+        self.bet = None
+        self.bet_banker = None
 
     async def play(self, ctx, bet: int):
         if await econ.wager(ctx, bet, min_bet=10, max_bet=10000):
@@ -527,9 +529,9 @@ class Baccarat:
             try:
                 response = await ctx.bot.wait_for("message", timeout=60.0, check=check)
                 if response.content.lower() in ["banker", "b"]:
-                    self.betBanker = True
+                    self.bet_banker = True
                 elif response.content.lower() in ["player", "p"]:
-                    self.betBanker = False
+                    self.bet_banker = False
                 else:
                     async with ctx.typing():
                         await ctx.send(f"{response.content} is not a valid input.")
@@ -545,7 +547,7 @@ class Baccarat:
                 await asyncio.sleep(1)
                 await ctx.send(self.player.draw(self.deck))
                 await asyncio.sleep(1)
-                await ctx.send(f"Player hand strength: {self.player.bStrength()}")
+                await ctx.send(f"Player hand strength: {self.player.b_strength()}")
                 await asyncio.sleep(1)
                 await ctx.send("Banker draw:")
                 await asyncio.sleep(1)
@@ -553,89 +555,89 @@ class Baccarat:
                 await asyncio.sleep(1)
                 await ctx.send(self.banker.draw(self.deck))
                 await asyncio.sleep(1)
-                await ctx.send(f"Banker hand strength: {self.banker.bStrength()}")
+                await ctx.send(f"Banker hand strength: {self.banker.b_strength()}")
                 await asyncio.sleep(1)
-            if self.banker.bStrength() >= 8 or self.player.bStrength() >= 8:
+            if self.banker.b_strength() >= 8 or self.player.b_strength() >= 8:
                 await self.score(ctx)
                 return
-            if self.player.bStrength() <= 5:
-                await self.playerHit(ctx)
-            elif self.player.bStrength() > 5:
-                await self.playerStand(ctx)
+            if self.player.b_strength() <= 5:
+                await self.player_hit(ctx)
+            elif self.player.b_strength() > 5:
+                await self.player_stand(ctx)
             else:
                 async with ctx.typing():
                     await ctx.send("An error has occured.")
-            if self.banker.bStrength() <= 2:
-                await self.bankerHit(ctx)
-            elif self.banker.bStrength() == 7:
-                await self.bankerStand(ctx)
+            if self.banker.b_strength() <= 2:
+                await self.banker_hit(ctx)
+            elif self.banker.b_strength() == 7:
+                await self.banker_stand(ctx)
                 await self.score(ctx)
-            elif self.third == True:
-                if self.banker.bStrength() == 3:
-                    if self.thirdCard.power() != 8:
-                        await self.bankerHit(ctx)
+            elif self.third:
+                if self.banker.b_strength() == 3:
+                    if self.third_card.power() != 8:
+                        await self.banker_hit(ctx)
                     else:
-                        await self.bankerStand(ctx)
-                elif self.banker.bStrength() == 4:
-                    if self.thirdCard.power() >= 2 and self.thirdCard.power() < 8:
-                        await self.bankerHit(ctx)
+                        await self.banker_stand(ctx)
+                elif self.banker.b_strength() == 4:
+                    if self.third_card.power() >= 2 and self.third_card.power() < 8:
+                        await self.banker_hit(ctx)
                     else:
-                        await self.bankerStand(ctx)
-                elif self.banker.bStrength() == 5:
-                    if self.thirdCard.power() >= 3 and self.thirdCard.power() < 8:
-                        await self.bankerHit(ctx)
+                        await self.banker_stand(ctx)
+                elif self.banker.b_strength() == 5:
+                    if self.third_card.power() >= 3 and self.third_card.power() < 8:
+                        await self.banker_hit(ctx)
                     else:
-                        await self.bankerStand(ctx)
-                elif self.banker.bStrength() == 6:
-                    if self.thirdCard.power() == 6 or self.thirdCard.power() == 7:
-                        await self.bankerHit(ctx)
+                        await self.banker_stand(ctx)
+                elif self.banker.b_strength() == 6:
+                    if self.third_card.power() == 6 or self.third_card.power() == 7:
+                        await self.banker_hit(ctx)
                     else:
-                        await self.bankerStand(ctx)
-                elif self.banker.bStrength() == 7:
-                    await self.bankerStand(ctx)
+                        await self.banker_stand(ctx)
+                elif self.banker.b_strength() == 7:
+                    await self.banker_stand(ctx)
                 else:
                     async with ctx.typing():
                         await ctx.send("An error has occured.")
-            elif self.banker.bStrength() <= 5:
-                await self.bankerHit(ctx)
+            elif self.banker.b_strength() <= 5:
+                await self.banker_hit(ctx)
             else:
-                await self.bankerStand(ctx)
+                await self.banker_stand(ctx)
             await self.score(ctx)
         else:
             async with ctx.typing():
                 await ctx.send("Try again.")
 
-    async def playerHit(self, ctx):
+    async def player_hit(self, ctx):
         self.third = True
         async with ctx.typing():
             await ctx.send("Player hits.")
-            self.thirdCard = self.player.draw(self.deck)
+            self.third_card = self.player.draw(self.deck)
             await asyncio.sleep(1)
-            await ctx.send(self.thirdCard)
-            await ctx.send(f"Player hand strength: {self.player.bStrength()}")
+            await ctx.send(self.third_card)
+            await ctx.send(f"Player hand strength: {self.player.b_strength()}")
 
-    async def playerStand(self, ctx):
+    async def player_stand(self, ctx):
         async with ctx.typing():
             await ctx.send("Player stands.")
 
-    async def bankerHit(self, ctx):
+    async def banker_hit(self, ctx):
         async with ctx.typing():
             await ctx.send("Banker hits.")
             await ctx.send(self.banker.draw(self.deck))
             await asyncio.sleep(1)
-            await ctx.send(f"Banker hand strength: {self.banker.bStrength()}")
+            await ctx.send(f"Banker hand strength: {self.banker.b_strength()}")
 
-    async def bankerStand(self, ctx):
+    async def banker_stand(self, ctx):
         async with ctx.typing():
             await ctx.send("Banker stands.")
 
     async def score(self, ctx):
-        if self.banker.bStrength() == self.player.bStrength():
+        if self.banker.b_strength() == self.player.b_strength():
             await self.push(ctx)
-        elif self.banker.bStrength() > self.player.bStrength():
-            await self.bankerWin(ctx)
-        elif self.banker.bStrength() < self.player.bStrength():
-            await self.playerWin(ctx)
+        elif self.banker.b_strength() > self.player.b_strength():
+            await self.banker_win(ctx)
+        elif self.banker.b_strength() < self.player.b_strength():
+            await self.player_win(ctx)
         else:
             async with ctx.typing():
                 await ctx.send("An error has occured.")
@@ -643,32 +645,32 @@ class Baccarat:
     async def push(self, ctx):
         await ctx.send("Push.")
 
-    async def bankerWin(self, ctx):
+    async def banker_win(self, ctx):
         async with ctx.typing():
             await ctx.send("Banker wins!")
-            if self.betBanker == True:
+            if self.bet_banker:
                 econ.change_points(ctx, self.bet)
                 await ctx.send(
                     f"You Win! {self.bet} Colin Coins have been added to your wallet."
                 )
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
-            elif self.betBanker == False:
+            elif not self.bet_banker:
                 econ.change_points(ctx, -self.bet)
                 await ctx.send("You lose.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
             else:
                 await ctx.send("An error has occured.")
 
-    async def playerWin(self, ctx):
+    async def player_win(self, ctx):
         async with ctx.typing():
             await ctx.send("Player wins!")
-            if self.betBanker == False:
+            if not self.bet_banker:
                 econ.change_points(ctx, self.bet)
                 await ctx.send(
                     f"You Win! {self.bet} Colin Coins have been added to your wallet."
                 )
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
-            elif self.betBanker == True:
+            elif self.bet_banker:
                 econ.change_points(ctx, -self.bet)
                 await ctx.send("You lose.")
                 await ctx.send(f"You now have {econ.get_points(ctx)} Colin Coins.")
@@ -679,7 +681,7 @@ class Baccarat:
 @econ.verify_user
 async def slots(ctx, bet):
     logger.info(f"{ctx.author.name} called !slots in {ctx.guild}")
-    if bet == None:
+    if bet is None:
         async with ctx.typing():
             await ctx.send(
                 f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins."
@@ -689,7 +691,7 @@ async def slots(ctx, bet):
         )
         return
     if ctx.author.id == 115928421204230149:
-        game = Slots_Legacy()
+        game = SlotsLegacy()
         await game.spin(ctx, bet)
     else:
         game = Slots()
@@ -699,7 +701,7 @@ async def slots(ctx, bet):
 @econ.verify_user
 async def blackjack(ctx, bet):
     logger.info(f"{ctx.author.name} called !blackjack in {ctx.guild}")
-    if bet == None:
+    if bet is None:
         async with ctx.typing():
             await ctx.send(
                 f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins."
@@ -715,7 +717,7 @@ async def blackjack(ctx, bet):
 @econ.verify_user
 async def baccarat(ctx, bet):
     logger.info(f"{ctx.author.name} called !baccarat in {ctx.guild}")
-    if bet == None:
+    if bet is None:
         async with ctx.typing():
             await ctx.send(
                 f"You must provide a wager, you currently have {econ.get_points(ctx)} Colin Coins."
@@ -731,7 +733,7 @@ async def baccarat(ctx, bet):
 async def payout(ctx):
     logger.info(f"{ctx.author.name} called !payout in {ctx.guild}")
     if ctx.author.id == 115928421204230149:
-        game = Slots_Legacy()
+        game = SlotsLegacy()
         await game.payout_table(ctx)
     else:
         game = Slots()
