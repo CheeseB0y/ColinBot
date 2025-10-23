@@ -2,8 +2,9 @@
 # John Wood
 
 import atexit
+import sys
 from os import getenv
-from discord import Intents
+from discord import Intents, LoginFailure
 from discord.ext import commands
 from dotenv import load_dotenv
 from cogs import chatbot, gamba, econ, misc
@@ -40,7 +41,11 @@ def main():
     atexit.register(econ.close)
     atexit.register(misc.on_shutdown)
 
-    bot.run(discord_token)
+    try:
+        bot.run(discord_token)
+    except LoginFailure:
+        logger.critical("Unable to find valid discord token, exiting program.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
