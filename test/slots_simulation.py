@@ -1,7 +1,25 @@
+"""
+Simulator program for slots fucntion.
+
+This is used to test for expected value gained over time on slots.
+The first interation of slots was way too player favored so I built this to rebalance it.
+Now this is basically just legacy code.
+"""
+
 import random
 
 
 class Reel:
+    """
+    Reel class for slot machine game.
+    Class should be initalized once per virtual reel on the slots game.
+
+    Attributes:
+        symbols: A tuple of discord emojis as strings for symbols to be used in the slot machine.
+        weights: An array of weights for each corresponding symbol, higher value is more likely to appear.
+        symbol: Placeholder symbol for slots icons before they appear, changes when the spin funciton is called.
+    """
+
     def __init__(self):
         self.symbols = (
             ":cherries:",
@@ -21,10 +39,29 @@ class Reel:
         self.symbol = ":question:"
 
     def spin(self):
+        """
+        Sets symbol to a random symbol from the symbols tuple.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.symbol = random.choices(self.symbols, weights=self.weights, k=1)[0]
 
 
 class Slots:
+    """
+    Slots game class
+
+    Attributes:
+        reels: List of reel objects.
+        row: List of symbols displayed by the reel objects.
+        points: Placeholder dict to be used later for scoring.
+        prize: Placeholder value to be updated during the payout function.
+    """
+
     def __init__(self):
         self.reels = [Reel() for _ in range(5)]
         self.row = []
@@ -32,11 +69,29 @@ class Slots:
         self.prize = 0
 
     def spin(self):
+        """
+        Spin all reels on the virtual slot machine.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         for reel in self.reels:
             reel.spin()
         self.row = [reel.symbol for reel in self.reels]
 
     def score(self):
+        """
+        Scores the game based on having consecutive symbols
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         consecutive_count = 1
         self.points.clear()
         for i in range(1, len(self.row)):
@@ -54,7 +109,15 @@ class Slots:
             self.points[self.row[-1]] = 2
 
     def payout(self, bet):
-        self.prize = 0
+        """
+        Calculates payout value for each consecutive items determined by the score function
+
+        Args:
+            bet: Wager amount.
+
+        Returns:
+            None
+        """
         for symbol, value in self.points.items():
             if symbol == ":cherries:":
                 if value == 2:
@@ -120,6 +183,16 @@ class Slots:
 
 
 def simulate_slot_machine(spins, bet):
+    """
+    Runs full slot machine simulation for x num iterations.
+
+    Args:
+        spins: Number of iterations to run the simulation.
+        bet: wager per simulation.
+
+    Returns:
+        None
+    """
     total_bet = 0
     total_prize = 0
     for _ in range(spins):
