@@ -18,8 +18,10 @@ try:
     db = client[getenv("MONGODB_DB")]
     collection = db["users"]
     logger.info("MongoDB client connection has been established successfully.")
+    MONGODB_CONNECTION_SUCCESS = True
 except Exception as e:
     logger.error(f"Failed to connect to MongoDB: {e}")
+    MONGODB_CONNECTION_SUCCESS = False
 
 
 def close():
@@ -223,11 +225,14 @@ async def coins(ctx):
 
 class Cog(commands.Cog, name="econ"):
     def __init__(self, bot):
-        try:
-            self.bot = bot
-            logger.info("Econ cog successfully initialized.")
-        except Exception as e:
-            logger.error(f"Unable to initialize econ cog: {e}")
+        if MONGODB_CONNECTION_SUCCESS:
+            try:
+                self.bot = bot
+                logger.info("Econ cog successfully initialized.")
+            except Exception as e:
+                logger.error(f"Unable to initialize econ cog: {e}")
+        else:
+            logger.warning("Econ cog was not initalized.")
 
     @commands.command(
         name="daily", help="Daily colin coin allowence, resets after 24 hours."

@@ -742,11 +742,14 @@ async def payout(ctx):
 
 class Cog(commands.Cog, name="gamba"):
     def __init__(self, bot):
-        try:
-            self.bot = bot
-            logger.info("Gamba cog successfully initialized.")
-        except Exception as e:
-            logger.error(f"Unable to initialize gamba cog: {e}")
+        if econ.MONGODB_CONNECTION_SUCCESS:
+            try:
+                self.bot = bot
+                logger.info("Gamba cog successfully initialized.")
+            except Exception as e:
+                logger.error(f"Unable to initialize gamba cog: {e}")
+        else:
+            logger.warning("Gamba cog was not initalized.")
 
     @commands.command(name="blackjack", help="Blackjack game, bet with Colin Coins.")
     async def blackjack(self, ctx, bet: int = None):

@@ -23,8 +23,10 @@ try:
     bucket = s3.Bucket(getenv("BUCKET_NAME"))
     pictures = [obj.key for obj in bucket.objects.filter(Prefix="img/colin/")]
     logger.info("Sucessfully connected to S3 bucket.")
+    S3_CONNECTION_SUCCESS = True
 except Exception as e:
     logger.error(f"Unable to establish connection to S3 bucket: {e}")
+    S3_CONNECTION_SUCCESS = False
 
 
 def on_startup():
@@ -104,9 +106,13 @@ class Cog(commands.Cog, name="misc"):
     async def ping(self, ctx):
         await ping(ctx, self.bot)
 
-    @commands.command(name="colin", help="Random picture of Colin Marie")
-    async def colin(self, ctx):
-        await colin(ctx)
+    if S3_CONNECTION_SUCCESS:
+
+        @commands.command(name="colin", help="Random picture of Colin Marie")
+        async def colin(self, ctx):
+            await colin(ctx)
+    else:
+        logger.info("Colin command not initalized, no S3 bucket found.")
 
     @commands.command(name="ninja", help="Post the epic quote from fortnite ninja")
     async def ninja(self, ctx):
