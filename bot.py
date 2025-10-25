@@ -1,5 +1,7 @@
-# ColinBot
-# John Wood
+"""
+ColinBot: A multifunctional discord bot.
+https://github.com/CheeseB0y/ColinBot
+"""
 
 import atexit
 import sys
@@ -12,6 +14,15 @@ from logging_config import logger
 
 
 async def init_cogs(bot):
+    """
+    Attempt to initialize all colinbot cogs
+
+    Args:
+        bot: Discord bot object
+
+    Returns:
+        None
+    """
     await bot.add_cog(chatbot.Cog(bot))
     await bot.add_cog(gamba.Cog(bot))
     await bot.add_cog(econ.Cog(bot))
@@ -19,10 +30,16 @@ async def init_cogs(bot):
 
 
 def main():
-    try:
-        load_dotenv()
-    except Exception as e:
-        logger.critical(f"Unable to load environment variables: {e}")
+    """
+    Main function
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+    load_dotenv()
 
     discord_token = str(getenv("DISCORD_TOKEN"))
     intents = Intents().all()
