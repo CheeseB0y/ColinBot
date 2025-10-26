@@ -1,3 +1,11 @@
+"""
+Miscellaneous cog.
+
+This cog handles all other miscellaneous ColinBot functions that don't fall into another category.
+These functions include !colin !ping !ninja !random and !waifu.
+Also handles startup and shutdown messages.
+"""
+
 import random
 from io import BytesIO
 from os import getenv
@@ -8,10 +16,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from logging_config import logger
 
-try:
-    load_dotenv()
-except Exception as e:
-    logger.critical(f"Unable to load environment variables: {e}")
+load_dotenv()
 
 try:
     s3 = boto3.resource(
@@ -26,18 +31,49 @@ try:
     S3_CONNECTION_SUCCESS = True
 except Exception as e:
     logger.error(f"Unable to establish connection to S3 bucket: {e}")
+    logger.warning(
+        "S3 bucket connection not established, consider fixing this to access the !colin feature."
+    )
     S3_CONNECTION_SUCCESS = False
 
 
 def on_startup():
+    """
+    Startup message
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     logger.info("ColinBot is online.")
 
 
 def on_shutdown():
+    """
+    Shutdown message
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
     logger.info("ColinBot is offline.")
 
 
 async def colin(ctx):
+    """
+    Colin function
+    posts any random picture from an S3 bucket.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !colin in {ctx.guild}")
     async with ctx.typing():
         try:
@@ -57,6 +93,16 @@ async def colin(ctx):
 
 
 async def ping(ctx, bot):
+    """
+    Ping test command
+
+    Args:
+        ctx: Discord context object.
+        bot: Discord bot object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !ping in {ctx.guild}")
     async with ctx.typing():
         latency = round(bot.latency * 1000)
@@ -65,6 +111,17 @@ async def ping(ctx, bot):
 
 
 async def ninja(ctx):
+    """
+    Ninja quote command
+
+    posts an iconic tweet from fortnite ninja.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !ninja in {ctx.guild}")
     async with ctx.typing():
         await ctx.send(
@@ -73,12 +130,32 @@ async def ninja(ctx):
 
 
 async def get_random_number(ctx):
+    """
+    Posts a "random" number (it's always 4)
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !random in {ctx.guild}")
     async with ctx.typing():
         await ctx.send("4")
 
 
 async def waifu(ctx):
+    """
+    Random waifu command
+
+    Posts a ranome waifu image from api.waifu.pics.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !waifu in {ctx.guild}")
     async with ctx.typing():
         try:
@@ -95,6 +172,15 @@ async def waifu(ctx):
 
 
 class Cog(commands.Cog, name="misc"):
+    """
+    Cog class
+
+    For initalizing all the miscellanious cog functions.
+
+    Attributes:
+        bot: Discord bot object.
+    """
+
     def __init__(self, bot):
         try:
             self.bot = bot
@@ -104,26 +190,31 @@ class Cog(commands.Cog, name="misc"):
 
     @commands.command(name="ping", help="Latency")
     async def ping(self, ctx):
+        """Init ping command"""
         await ping(ctx, self.bot)
 
     if S3_CONNECTION_SUCCESS:
 
         @commands.command(name="colin", help="Random picture of Colin Marie")
         async def colin(self, ctx):
+            """Init colin command"""
             await colin(ctx)
     else:
         logger.info("Colin command not initalized, no S3 bucket found.")
 
     @commands.command(name="ninja", help="Post the epic quote from fortnite ninja")
     async def ninja(self, ctx):
+        """Init ninja command"""
         await ninja(ctx)
 
     @commands.command(
         name="random", help="Chosen by fair dice roll. Guaranteed to be random."
     )
     async def get_random_number(self, ctx):
+        """Init random command"""
         await get_random_number(ctx)
 
     @commands.command(name="waifu", help="Random waifu from waifu.api.")
     async def waifu(self, ctx):
+        """Init waifu command"""
         await waifu(ctx)
