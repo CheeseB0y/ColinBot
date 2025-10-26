@@ -1,3 +1,9 @@
+"""
+Chatbot cog
+
+This cog handles all the chatbot funcitonality for ColinBot.
+"""
+
 from dotenv import load_dotenv
 from openai import OpenAI, OpenAIError
 from discord.ext import commands
@@ -25,6 +31,18 @@ except OpenAIError:
 
 
 class ChatBot:
+    """
+    Chatbot class
+
+    With this class we can create multiple chatbot instances so that we can have different chat history on a per server basis.
+
+    Attributes:
+        system_message: ChatGPT system prompt message.
+        max_messages: Limir for number of messages per chat history.
+        guild: Discord guild ID or server ID.
+        model: ChatGPT model name for OpenAI API.
+    """
+
     def __init__(self, ctx):
         self.system_message = system_prompt
         self.max_messages = 25
@@ -33,6 +51,15 @@ class ChatBot:
         self.model = GPT_MODEL
 
     def get_completion(self):
+        """
+        Get LLM completion from list of messages.
+
+        Args:
+            None
+
+        Returns:
+            completion: String response from the LLM.
+        """
         all_messages = [self.system_message] + self.messages
         completion = GPT.chat.completions.create(
             model=self.model, messages=all_messages
@@ -40,13 +67,47 @@ class ChatBot:
         return completion
 
     def split_string_by_length(self, s, n=2000):
+        """
+        Split string into chunks of n characters
+
+        Discord has a character limit of 2000 characters.
+        To get around this we split the messages into chunks of 2000 each if neccessary.
+
+        Args:
+            s: String we may want to split into chunks.
+            n: Number of characters per chunk.
+
+        Returns:
+            output: List of strings of up to 2000 characters each.
+        """
         return [s[i : i + n] for i in range(0, len(s), n)]
 
     def append_message(self, role="", content=""):
+        """
+        Append message to list of messages.
+
+        Use when adding a message to the message history.
+
+        Args:
+            role: "user" or "assistant" for where the message is coming from.
+            content: Content of the message to be appended.
+
+        Returns:
+            None
+        """
         self.messages.append({"role": role, "content": content})
         self.trim_messages()
 
     def trim_messages(self):
+        """
+        Delete old messages when message limit is exceeded.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if len(self.messages) > self.max_messages:
             self.messages.pop(0)
 
@@ -55,6 +116,18 @@ chatbots = {}
 
 
 async def reply(message, bot):
+    """
+    Generate a reply to a users message.
+
+    Takes input from Discord API and generates a response to send in reply to a users message.
+
+    Args:
+        message: User message which we get from calling @bot.event on_message().
+        bot: Discord bot object.
+
+    Returns:
+        None
+    """
     if bot.user.mentioned_in(message):
         logger.info(f"{message.author.name} mentioned @colinbot in {message.guild}")
         if message.guild.id not in chatbots:
@@ -90,6 +163,17 @@ async def reply(message, bot):
 
 
 async def tts(ctx):
+    """
+    Generates a reply to a users message with text to speech.
+
+    Effectivly this is the same functionality as reply but responds with text to speech.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !tts in {ctx.guild}")
     if ctx.guild.id not in chatbots:
         logger.info(f"Creating new chatbot instance in {ctx.guild}")
@@ -120,6 +204,18 @@ async def tts(ctx):
 
 
 async def thoughts(ctx, x: int):
+    """
+    Generates a response using discord chat history instead of the message history with the bot.
+
+    Called with a given amount of messages to look back on for the response.
+
+    Args:
+        ctx: Discord context object.
+        x: Number of messages to use for input.
+
+    Returns:
+        None
+    """
     limit = 25
     logger.info(f"{ctx.author.name} called !thoughts in {ctx.guild}")
     async with ctx.typing():
@@ -154,6 +250,15 @@ async def thoughts(ctx, x: int):
 
 
 class Cog(commands.Cog, name="chatbot"):
+    """
+    Cog class
+
+    For initalizing all the chatbot cog functions.
+
+    Attributes:
+        bot: Discord bot object.
+    """
+
     def __init__(self, bot):
         if GPT_CONNECTION_SUCCESS:
             try:
@@ -169,16 +274,19 @@ class Cog(commands.Cog, name="chatbot"):
         help="Review the past x messages and give thoughts on the conversation.",
     )
     async def thoughts(self, ctx, x: int = None):
+        """Init thoughts command"""
         await thoughts(ctx, x)
 
     @commands.command(name="tts", help="Text to speech chatbot response.")
     async def tts(self, ctx):
+        """Init tts command"""
         await tts(ctx)
 
     @commands.command(
         name="chat", help="Mention the bot (@colinbot) to start a conversation."
     )
     async def chat(self, ctx):
+        """Init chat command"""
         await ctx.send(
             f"To chat with ColinBot, please mention {self.bot.user.mention} to start a conversation."
         )
