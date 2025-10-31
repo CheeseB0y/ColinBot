@@ -5,3 +5,9 @@ docker-compose.yml
 .env
 .gitignore
 README.md
+.vscode
+test
+venv
+.pylintrc
+LICENSE
+template.env
