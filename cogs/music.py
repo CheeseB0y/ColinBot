@@ -46,6 +46,10 @@ class Player:
         pause: Bool; true if music player is currently paused.
         channel: Voice channel discord object.
         guild: Discord guild ID.
+<<<<<<< HEAD
+=======
+        client: Music player client.
+>>>>>>> 5a722af (Added docstrings.)
     """
 
     def __init__(self, ctx):
@@ -55,6 +59,7 @@ class Player:
         self.pause = False
         self.channel = ctx.author.voice.channel
         self.guild = ctx.guild.id
+        self.client = None
 
     def __str__(self):
         i = 1
