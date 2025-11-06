@@ -1,3 +1,9 @@
+"""
+Music cog
+
+This cog handles all the music funcitonality for ColinBot.
+"""
+
 import asyncio
 import os
 import random
@@ -10,6 +16,15 @@ FFMPEG_OPTIONS = {"options": "-vn"}
 
 
 class Song:
+    """
+    Song class for playing music via FFMPEG.
+
+    Attributes:
+        file: Path to music file as a string.
+        title: Song title pulled from file name.
+        file_type: file extension from file name.
+    """
+
     def __init__(self, file_path):
         self.file = file_path
         name, ext = os.path.splitext(os.path.basename(file_path))
@@ -21,13 +36,24 @@ class Song:
 
 
 class Player:
+    """
+    Player class for playing and managing music.
+
+    Attributes:
+        queue: List of song objects to be played in order.
+        active: Bool; true if a song is currently playing.
+        playing: Curringly playing song object.
+        pause: Bool; true if music player is currently paused.
+        channel: Voice channel discord object.
+        guild: Discord guild ID.
+    """
+
     def __init__(self, ctx):
         self.queue = []
         self.active = False
         self.playing = None
         self.pause = False
         self.channel = ctx.author.voice.channel
-        self.client = None
         self.guild = ctx.guild.id
 
     def __str__(self):
@@ -39,15 +65,43 @@ class Player:
         return queue_str
 
     def is_empty(self):
+        """
+        Check if the queue is empty.
+
+        Args:
+            None
+
+        Returns:
+            True if queue is empty.
+        """
         return len(self.queue) == 0
 
     async def enqueue(self, song: Song, ctx):
+        """
+        Add a song to the queue.
+
+        Args:
+            song: Song object.
+            ctx: Discord context object.
+
+        Returns:
+            None
+        """
         async with ctx.typing():
             self.queue.append(song)
             await ctx.send(f"{song.title} has been added to the queue.")
         logger.info(f"{song.title} has been added to the queue in {ctx.guild}")
 
     async def dequeue(self, ctx):
+        """
+        Removes the next song from the queue.
+
+        Args:
+            ctx: Discord context object.
+
+        Returns:
+            song: song object removed from the queue.
+        """
         if self.is_empty():
             async with ctx.typing():
                 await ctx.send("Queue is empty")
@@ -57,6 +111,15 @@ class Player:
         return song
 
     async def clear(self, ctx):
+        """
+        Empty the entire queue.
+
+        Args:
+            ctx: Discord context object.
+
+        Returns:
+            None
+        """
         async with ctx.typing():
             self.queue = []
             self.playing = None
@@ -65,15 +128,23 @@ class Player:
         logger.info(f"Queue has been emptied in {ctx.guild}")
 
     async def handle_queue(self, ctx):
+        """
+        Queue handler, ensures that songs start and stop cleanly.
+
+        Args:
+            ctx: Discord context object.
+
+        Returns:
+            None
+        """
         self.active = True
         while not self.is_empty():
             async with ctx.typing():
                 song = await self.dequeue(ctx)
                 self.playing = song
-                player = FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
+                FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
                 await ctx.send(f"Now playing: {song.title}")
-                self.client.play(player)
-            while self.client.is_playing() or self.pause:
+            while self.pause:
                 await asyncio.sleep(1)
         self.active = False
         self.playing = None
@@ -83,6 +154,15 @@ players = {}
 
 
 async def join(ctx):
+    """
+    Joins the discord voice channel that the user is currently in.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !join in {ctx.guild}")
     if ctx.author.voice:
         players[ctx.guild.id] = Player(ctx)
@@ -97,6 +177,15 @@ async def join(ctx):
 
 
 async def leave(ctx):
+    """
+    Leave the current discord voice channel.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !leave in {ctx.guild}")
     if ctx.voice_client:
         if players[ctx.guild.id].active:
@@ -120,6 +209,15 @@ async def leave(ctx):
 
 
 async def ram_ranch(ctx):
+    """
+    Plays a random Ram Ranch song.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !ramranch in {ctx.guild}")
     songs = []
     for filepath in os.listdir(MUSIC_PATH):
@@ -134,6 +232,15 @@ async def ram_ranch(ctx):
 
 
 async def pause(ctx):
+    """
+    Pauses the current music player.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !pause in {ctx.guild}")
     players[ctx.guild.id].pause = True
     players[ctx.guild.id].client.pause()
@@ -141,6 +248,15 @@ async def pause(ctx):
 
 
 async def resume(ctx):
+    """
+    Resume the current music player, if paused.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !resume in {ctx.guild}")
     players[ctx.guild.id].pause = False
     await players[ctx.guild.id].client.resume()
@@ -148,6 +264,15 @@ async def resume(ctx):
 
 
 async def stop(ctx):
+    """
+    Stops the current music player and clears the queue.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !stop in {ctx.guild}")
     await players[ctx.guild.id].clear(ctx)
     players[ctx.guild.id].client.stop()
@@ -156,21 +281,57 @@ async def stop(ctx):
 
 
 async def skip(ctx):
+    """
+    Skips the currently playing song.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !skip in {ctx.guild}")
     await players[ctx.guild.id].client.stop()
 
 
 async def playing(ctx):
+    """
+    Sends information about the currently playing song.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !playing in {ctx.guild}")
     await ctx.send(players[ctx.guild.id].playing)
 
 
 async def queue(ctx):
+    """
+    Sends information about the current music queue.
+
+    Args:
+        ctx: Discord context object.
+
+    Returns:
+        None
+    """
     logger.info(f"{ctx.author.name} called !queue in {ctx.guild}")
     await ctx.send(players[ctx.guild.id])
 
 
 class Cog(commands.Cog, name="music"):
+    """
+    Cog class
+
+    For initalizing all the music cog functions.
+
+    Attributes:
+        bot: Discord bot object.
+    """
+
     def __init__(self, bot):
         try:
             self.bot = bot
@@ -180,46 +341,57 @@ class Cog(commands.Cog, name="music"):
 
     @commands.command(name="join", help="Join the current voice channel.")
     async def join(self, ctx):
+        """Init join command"""
         await join(ctx)
 
     @commands.command(name="leave", help="Leave the current voice channel.")
     async def leave(self, ctx):
+        """Init leave command"""
         await leave(ctx)
 
     @commands.command(
         name="ramranch", help="Play a random Ram Ranch in the current voice channel."
     )
     async def ram_ranch(self, ctx):
+        """Init ramranch command"""
         await ram_ranch(ctx)
 
     @commands.command(name="rr", help="Short for Ram Ranch.")
     async def rr(self, ctx):
+        """Init rr command"""
         await ram_ranch(ctx)
 
     @commands.command(name="pause", help="Pause music playback.")
     async def pause(self, ctx):
+        """Init pause command"""
         await pause(ctx)
 
     @commands.command(name="play", help="Resume music playback.")
     async def play(self, ctx):
+        """Init play command"""
         await resume(ctx)
 
     @commands.command(name="resume", help="Resume music playback.")
     async def resume(self, ctx):
+        """Init resume command"""
         await resume(ctx)
 
     @commands.command(name="stop", help="End music playback")
     async def stop(self, ctx):
+        """Init stop command"""
         await stop(ctx)
 
     @commands.command(name="skip", help="Skip current song in queue.")
     async def skip(self, ctx):
+        """Init skip command"""
         await skip(ctx)
 
     @commands.command(name="playing", help="Now playing.")
     async def playing(self, ctx):
+        """Init playing command"""
         await playing(ctx)
 
     @commands.command(name="queue", help="Music queue.")
     async def queue(self, ctx):
+        """Init queue command"""
         await queue(ctx)
