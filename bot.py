@@ -9,7 +9,7 @@ from os import getenv
 from discord import Intents, LoginFailure
 from discord.ext import commands
 from dotenv import load_dotenv
-from cogs import chatbot, gamba, econ, misc
+from cogs import chatbot, gamba, econ, misc, music
 from logging_config import logger
 
 
@@ -27,6 +27,7 @@ async def init_cogs(bot):
     await bot.add_cog(gamba.Cog(bot))
     await bot.add_cog(econ.Cog(bot))
     await bot.add_cog(misc.Cog(bot))
+    await bot.add_cog(music.Cog(bot))
 
 
 def main():
