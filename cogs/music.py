@@ -46,14 +46,7 @@ class Player:
         pause: Bool; true if music player is currently paused.
         channel: Voice channel discord object.
         guild: Discord guild ID.
-<<<<<<< HEAD
         client: Music player client.
-=======
-<<<<<<< HEAD
-=======
-        client: Music player client.
->>>>>>> 5a722af (Added docstrings.)
->>>>>>> 1f81636c3ccb209264a0239f76ced312944b1ee0
     """
 
     def __init__(self, ctx):
