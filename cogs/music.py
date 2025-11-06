@@ -46,6 +46,7 @@ class Player:
         pause: Bool; true if music player is currently paused.
         channel: Voice channel discord object.
         guild: Discord guild ID.
+        client: Music player client.
     """
 
     def __init__(self, ctx):
@@ -55,6 +56,7 @@ class Player:
         self.pause = False
         self.channel = ctx.author.voice.channel
         self.guild = ctx.guild.id
+        self.client = None
 
     def __str__(self):
         i = 1
@@ -141,10 +143,10 @@ class Player:
         while not self.is_empty():
             async with ctx.typing():
                 song = await self.dequeue(ctx)
-                self.playing = song
-                FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
+                player = FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
                 await ctx.send(f"Now playing: {song.title}")
-            while self.pause:
+                self.client.play(player)
+            while self.client.is_playing() or self.pause:
                 await asyncio.sleep(1)
         self.active = False
         self.playing = None
