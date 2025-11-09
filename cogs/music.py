@@ -34,6 +34,7 @@ class Song:
         self.file = file_path
         self.title = name
         self.file_type = ext
+        self.artist = "Grant MacDonald"
         try:
             self.metadata = ffmpeg.probe(self.file)
             self.duration = self.get_duration(self.metadata)
@@ -45,7 +46,7 @@ class Song:
 
     def __str__(self):
         if self.duration is not None:
-            return f"{self.title} {self.duration}"
+            return f"{self.title} by {self.artist} {self.duration}"
         return f"{self.title}"
 
     def get_duration(self, metadata):
@@ -61,7 +62,7 @@ class Song:
         duration = float(metadata["format"]["duration"])
         minutes = int(duration / 60)
         seconds = int(duration % 60)
-        return f"{minutes:02d}:{seconds:02d}"
+        return f"{minutes:2d}:{seconds:02d}"
 
 
 class Player:
@@ -175,10 +176,13 @@ class Player:
                 player = FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
                 await ctx.send(f"Now playing: {song}")
                 self.client.play(player)
+                self.playing = song
             while self.client.is_playing() or self.pause:
                 await asyncio.sleep(1)
         self.active = False
         self.playing = None
+        if not self.queue:
+            await leave(ctx)
 
 
 players = {}
