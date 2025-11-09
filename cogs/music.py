@@ -7,6 +7,7 @@ This cog handles all the music funcitonality for ColinBot.
 import asyncio
 import os
 import random
+import ffmpeg
 from discord import FFmpegPCMAudio
 from discord.ext import commands
 from logging_config import logger
@@ -30,9 +31,26 @@ class Song:
         name, ext = os.path.splitext(os.path.basename(file_path))
         self.title = name
         self.file_type = ext
+        self.metadata = ffmpeg.probe(self.file)
+        self.duration = self.get_duration(self.metadata)
 
     def __str__(self):
-        return f"{self.title}"
+        return f"{self.title} {self.duration}"
+
+    def get_duration(self, metadata):
+        """
+        Gets duration from ffmpeg metadata
+
+        Args:
+            metadata: Metadata dictionary from ffmpeg.probe.
+
+        Returns:
+            formatted string of song duration.
+        """
+        duration = float(metadata["format"]["duration"])
+        minutes = int(duration / 60)
+        seconds = int(duration % 60)
+        return f"{minutes:02d}:{seconds:02d}"
 
 
 class Player:
@@ -144,7 +162,7 @@ class Player:
             async with ctx.typing():
                 song = await self.dequeue(ctx)
                 player = FFmpegPCMAudio(song.file, **FFMPEG_OPTIONS)
-                await ctx.send(f"Now playing: {song.title}")
+                await ctx.send(f"Now playing: {song}")
                 self.client.play(player)
             while self.client.is_playing() or self.pause:
                 await asyncio.sleep(1)
