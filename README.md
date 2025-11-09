@@ -46,7 +46,7 @@ Running **ColinBot** from source should be very straighforward if you are famili
 
 ### Docker
 
-I will not be explaining how to set up Docker here, I will continue under the assumption that you already have Docker installed. **ColinBot** is avalible on Docker Hub at https://hub.docker.com/repository/docker/cheeseb0y/colinbot/. To download the **ColinBot** Docker container run `docker pull cheeseb0y/colinbot:latest`. After it is done pulling the Docker image you must set up your environment variables. Fill out the necessary variables using the `template.env` file and rename it to `.env` when you're done. Then when you're ready to start the **ColinBot** docker image run `docker run --env-file .env cheeseb0y/colinbot:latest`.
+I will not be explaining how to set up Docker here, I will continue under the assumption that you already have Docker installed. **ColinBot** is avalible on Docker Hub at https://hub.docker.com/repository/docker/cheeseb0y/colinbot/. To download the **ColinBot** Docker container run `docker pull cheeseb0y/colinbot:latest`. After it is done pulling the Docker image you must set up your environment variables. Fill out the necessary variables using the `template.env` file and rename it to `.env` when you're done. You do not need to change the `MUSIC_PATH` variable for the docker container you can leave it as is. Then when you're ready to start the **ColinBot** docker image run `docker run --env-file .env -v YOUR_PATH_TO_MUSIC_FOLDER:/music cheeseb0y/colinbot:latest`.
 
 ## License
 
