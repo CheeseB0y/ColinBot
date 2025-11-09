@@ -7,6 +7,7 @@
   - [Chatbot](#chatbot)
   - [Economy](#economy)
   - [Gambling](#gambling)
+  - [Music](#music)
   - [Other Features](#other)
 - [Setup](#setup)
   - [Source](#source)
@@ -26,6 +27,10 @@ To chat with **ColinBot** you can simply mention them like so `@colinbot` and th
 ### Gambling
 
 Users can gamble their Colin Coins in a variety of games including `!slots` `!blackjack` and `!baccarat`. More betting games are planned for the future.
+
+### Music
+
+**ColinBot** is currently unable to play music from YouTube links, however it is capable of playing local files! Though I hope to expand on this functionality later, all that you can currenly play is Ram Ranch 1-500. You will of course need to source these files yourself but to play one of the songs make sure that you are in a voice channel and type `!ramranch` and it will randomly select one. The rest of the functions you would expect for music playback is here too including `!pause` `!play` `!stop` `!skip` etc. To learn more about this use the `!help` command for a complete list.
 
 ### Other
 
