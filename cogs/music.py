@@ -7,12 +7,15 @@ This cog handles all the music funcitonality for ColinBot.
 import asyncio
 import os
 import random
+from dotenv import load_dotenv
 import ffmpeg
 from discord import FFmpegPCMAudio
 from discord.ext import commands
 from logging_config import logger
 
-MUSIC_PATH = "music/"
+load_dotenv()
+
+MUSIC_PATH = os.getenv("MUSIC_PATH")
 FFMPEG_OPTIONS = {"options": "-vn"}
 
 
@@ -27,15 +30,23 @@ class Song:
     """
 
     def __init__(self, file_path):
-        self.file = file_path
         name, ext = os.path.splitext(os.path.basename(file_path))
+        self.file = file_path
         self.title = name
         self.file_type = ext
-        self.metadata = ffmpeg.probe(self.file)
-        self.duration = self.get_duration(self.metadata)
+        try:
+            self.metadata = ffmpeg.probe(self.file)
+            self.duration = self.get_duration(self.metadata)
+            logger.info(f"Successfully loaded metadata for file {self.file}")
+        except Exception:
+            logger.error(f"Unable to get metadata for file {self.file}.")
+            self.metadata = None
+            self.duration = None
 
     def __str__(self):
-        return f"{self.title} {self.duration}"
+        if self.duration is not None:
+            return f"{self.title} {self.duration}"
+        return f"{self.title}"
 
     def get_duration(self, metadata):
         """
