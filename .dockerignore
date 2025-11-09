@@ -11,3 +11,4 @@ venv
 .pylintrc
 LICENSE
 template.env
+/music
