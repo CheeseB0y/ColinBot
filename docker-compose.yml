@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+  colinbot:
+    image: cheeseb0y/colinbot:latest
+    depends_on:
+      - ollama
+    environment:
+      OLLAMA_HOST: ${OLLAMA_HOST}
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      MODEL_TYPE: ${MODEL_TYPE}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      BUCKET_NAME: ${BUCKET_NAME}
+      MONGODB_URI: ${MONGODB_URI}
+      MONGODB_DB: ${MONGODB_DB}
+      MUSIC_PATH: ${MUSIC_PATH}
+    volumes:
+      - ./logs:/app/logs
+      - ~/colinbot/music:/music
+    restart: unless-stopped
+
+volumes:
+  ollama_data:
