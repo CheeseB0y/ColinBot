@@ -136,3 +136,4 @@ logs
 ffmpeg.exe
 .dockerignore
 music
+colin.db
