@@ -3,7 +3,6 @@ ColinBot: A multifunctional discord bot.
 https://github.com/CheeseB0y/ColinBot
 """
 
-import atexit
 import sys
 from os import getenv
 from discord import Intents, LoginFailure
@@ -11,6 +10,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from cogs import chatbot, gamba, econ, misc, music
 from logging_config import logger
+from database import Database
 
 
 async def init_cogs(bot):
@@ -48,6 +48,8 @@ def main():
 
     @bot.event
     async def on_ready():
+        bot.db = Database()
+        bot.db.init_tables()
         await init_cogs(bot)
         misc.on_startup()
 
@@ -55,9 +57,6 @@ def main():
     async def on_message(message):
         if not message.mention_everyone:
             await chatbot.reply(message, bot)
-
-    atexit.register(econ.close)
-    atexit.register(misc.on_shutdown)
 
     try:
         bot.run(discord_token)

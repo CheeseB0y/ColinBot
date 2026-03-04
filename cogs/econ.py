@@ -5,6 +5,7 @@ This cog handles all the Economy funcitonality for ColinBot.
 """
 
 from os import getenv
+import atexit
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pymongo.mongo_client import MongoClient
@@ -30,6 +31,7 @@ except Exception as e:
     MONGODB_CONNECTION_SUCCESS = False
 
 
+@atexit.register
 def close():
     """
     Close connection to MongoDB

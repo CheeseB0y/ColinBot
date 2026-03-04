@@ -7,6 +7,7 @@ Also handles startup and shutdown messages.
 """
 
 import random
+import atexit
 from io import BytesIO
 from os import getenv
 import boto3
@@ -50,6 +51,7 @@ def on_startup():
     logger.info("ColinBot is online.")
 
 
+@atexit.register
 def on_shutdown():
     """
     Shutdown message
